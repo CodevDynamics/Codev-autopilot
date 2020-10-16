@@ -176,6 +176,9 @@ Battery::estimateRemaining(float voltage_v, float current_a, float throttle, boo
 	if (_param_bat_r_internal.get() >= 0.f) {
 		cell_voltage += _param_bat_r_internal.get() * current_a;
 
+	} else if(!armed){
+		// when disarm, add the hover voltage drop
+		cell_voltage += _param_mpc_thr_hover.get() * _param_bat_v_load_drop.get();
 	} else {
 		// assume linear relation between throttle and voltage drop
 		cell_voltage += throttle * _param_bat_v_load_drop.get();
