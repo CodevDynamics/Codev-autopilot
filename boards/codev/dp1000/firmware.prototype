@@ -1,0 +1,13 @@
+{
+    "board_id": 66,
+    "magic": "PX4FWv1",
+    "description": "Firmware for the codev DP1000 board",
+    "image": "",
+    "build_time": 0,
+    "summary": "DP1000",
+    "version": "0.1",
+    "image_size": 0,
+    "image_maxsize": 2064384,
+    "git_identity": "",
+    "board_revision": 0
+}

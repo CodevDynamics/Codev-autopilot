@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# PX4 Cocev's dp1000 specific board defaults
+#------------------------------------------------------------------------------
+
+
+if [ $AUTOCNF = yes ]
+then
+
+fi
+
+set LOGGER_BUF 64
+
+safety_button start
+
+param set SYS_AUTOSTART 4065
+param set SYS_USE_IO 1
