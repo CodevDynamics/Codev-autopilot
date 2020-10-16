@@ -1601,7 +1601,7 @@ PX4IO::io_handle_status(uint16_t status)
 	 */
 	safety_s safety{};
 	safety.timestamp = hrt_absolute_time();
-	safety.safety_switch_available = true;
+	safety.safety_switch_available = false;
 	safety.safety_off = (status & PX4IO_P_STATUS_FLAGS_SAFETY_OFF) ? true : false;
 	safety.override_available = _override_available;
 	safety.override_enabled = (status & PX4IO_P_STATUS_FLAGS_OVERRIDE) ? true : false;
