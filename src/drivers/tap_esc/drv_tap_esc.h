@@ -64,9 +64,9 @@
  */
 
 // Circular from back right in CCW direction
-#define ESC_POS {0, 1, 4, 3, 2, 5, 7, 8}
+#define ESC_POS {2, 1, 0, 3, 4, 5, 6, 7}
 // 0 is CW, 1 is CCW
-#define ESC_DIR {0, 1, 0, 1, 0, 1, 0, 1}
+#define ESC_DIR {0, 1, 1, 0, 1 ,1, 1, 1}
 
 #define RPMMAX 1900
 #define RPMMIN 1200

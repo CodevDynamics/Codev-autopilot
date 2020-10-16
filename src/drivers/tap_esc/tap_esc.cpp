@@ -48,14 +48,17 @@
 #include <perf/perf_counter.h>
 #include <px4_module_params.h>
 #include <uORB/Subscription.hpp>
+ #include <lib/led/led.h>
 #include <uORB/topics/actuator_controls.h>
 #include <uORB/topics/actuator_outputs.h>
 #include <uORB/topics/actuator_armed.h>
 #include <uORB/topics/test_motor.h>
+#include <uORB/topics/led_control.h>
 #include <uORB/topics/input_rc.h>
 #include <uORB/topics/esc_status.h>
 #include <uORB/topics/multirotor_motor_limits.h>
 #include <uORB/topics/parameter_update.h>
+ #include <uORB/topics/vehicle_status.h>
 
 #include <drivers/drv_hrt.h>
 #include <drivers/drv_mixer.h>
@@ -116,10 +119,12 @@ private:
 	int 			_test_motor_sub = -1;
 
 	uORB::Subscription	_parameter_update_sub{ORB_ID(parameter_update)};
+	uORB::Subscription	_vehicle_status_sub{ORB_ID(vehicle_status)};
 
 	orb_advert_t        	_outputs_pub = nullptr;
 	actuator_outputs_s      _outputs = {};
 	actuator_armed_s	_armed = {};
+	vehicle_status_s	_vehicle_status = {};
 
 	perf_counter_t	_perf_control_latency;
 
@@ -140,6 +145,8 @@ private:
 	uint32_t	_groups_subscribed = 0;
 	ESC_UART_BUF 	_uartbuf = {};
 	EscPacket 	_packet = {};
+	LedControlData 	_led_control_data = {};
+	LedController 	_led_controller = {};
 
 	DEFINE_PARAMETERS(
 		(ParamInt<px4::params::MC_AIRMODE>) _param_mc_airmode   ///< multicopter air-mode
@@ -301,7 +308,7 @@ int TAP_ESC::init()
 	}
 
 	config.maxChannelValue = RPMMAX;
-	config.minChannelValue = RPMMIN;
+	config.minChannelValue = RPMMIN - 5;
 
 	ret = tap_esc_common::send_packet(_uart_fd, packet, 0);
 
@@ -371,19 +378,58 @@ void TAP_ESC::subscribe()
 void TAP_ESC::send_esc_outputs(const uint16_t *pwm, const uint8_t motor_cnt)
 {
 	uint16_t rpm[TAP_ESC_MAX_MOTOR_NUM] = {};
+	_led_controller.update(_led_control_data);
 
 	for (uint8_t i = 0; i < motor_cnt; i++) {
 		rpm[i] = pwm[i];
 
-		if (rpm[i] > RPMMAX) {
-			rpm[i] = RPMMAX;
+		if ((rpm[i] & RUN_CHANNEL_VALUE_MASK) > RPMMAX) {
+			rpm[i] = (rpm[i] & ~RUN_CHANNEL_VALUE_MASK) | RPMMAX;
+		} else if ((rpm[i] & RUN_CHANNEL_VALUE_MASK) < RPMSTOPPED) {
+			rpm[i] = (rpm[i] & ~RUN_CHANNEL_VALUE_MASK) | RPMSTOPPED;
+		}
 
-		} else if (rpm[i] < RPMSTOPPED) {
-			rpm[i] = RPMSTOPPED;
+
+		// apply the tap escs' led color
+		if (i < BOARD_MAX_LEDS) {
+			switch (_led_control_data.leds[i].color) {
+			case led_control_s::COLOR_RED:
+				rpm[i] |= RUN_RED_LED_ON_MASK;
+				break;
+
+			case led_control_s::COLOR_GREEN:
+				rpm[i] |= RUN_GREEN_LED_ON_MASK;
+				break;
+
+			case led_control_s::COLOR_BLUE:
+				rpm[i] |= RUN_BLUE_LED_ON_MASK;
+				break;
+
+			case led_control_s::COLOR_AMBER: //make it the same as yellow
+			case led_control_s::COLOR_YELLOW:
+				rpm[i] |= RUN_RED_LED_ON_MASK | RUN_GREEN_LED_ON_MASK;
+				break;
+
+			case led_control_s::COLOR_PURPLE:
+				rpm[i] |= RUN_RED_LED_ON_MASK | RUN_BLUE_LED_ON_MASK;
+				break;
+
+			case led_control_s::COLOR_CYAN:
+				rpm[i] |= RUN_GREEN_LED_ON_MASK | RUN_BLUE_LED_ON_MASK;
+				break;
+
+			case led_control_s::COLOR_WHITE:
+				rpm[i] |= RUN_RED_LED_ON_MASK | RUN_GREEN_LED_ON_MASK | RUN_BLUE_LED_ON_MASK;
+				break;
+
+			default: // led_control_s::COLOR_OFF
+				break;
+			}
 		}
 	}
 
-	rpm[_responding_esc] |= (RUN_FEEDBACK_ENABLE_MASK | RUN_BLUE_LED_ON_MASK);
+	// rpm[_responding_esc] |= (RUN_FEEDBACK_ENABLE_MASK | RUN_BLUE_LED_ON_MASK);
+	rpm[_device_mux_map[_responding_esc]] |= RUN_FEEDBACK_ENABLE_MASK;
 
 	EscPacket packet = {PACKET_HEAD, _channels_count, ESCBUS_MSG_ID_RUN};
 	packet.len *= sizeof(packet.d.reqRun.rpm_flags[0]);
@@ -528,9 +574,9 @@ void TAP_ESC::cycle()
 		// scheme is
 		switch (num_outputs) {
 		case 4:
-			motor_out[0] = (uint16_t)_outputs.output[2];
+			motor_out[0] = (uint16_t)_outputs.output[0];
 			motor_out[1] = (uint16_t)_outputs.output[1];
-			motor_out[2] = (uint16_t)_outputs.output[0];
+			motor_out[2] = (uint16_t)_outputs.output[2];
 			motor_out[3] = (uint16_t)_outputs.output[3];
 			break;
 
