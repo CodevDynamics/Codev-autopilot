@@ -39,7 +39,7 @@ px4_add_romfs_files(
 	1001_rc_quad_x.hil
 	1002_standard_vtol.hil
 	1100_rc_quad_x_sih.hil
-	
+
 	# [2000, 2999] Standard planes"
 	2100_standard_plane
 	2105_maja
@@ -80,6 +80,7 @@ px4_add_romfs_files(
 	4052_holybro_qav250
 	4053_holybro_kopis2
 	4060_dji_matrice_100
+	4065_codev_dp_1000
 	4070_aerofc
 	4071_ifo
 	4072_draco
@@ -141,7 +142,7 @@ px4_add_romfs_files(
 	15001_coax_heli
 
 	16001_helicopter
-	
+
 	24001_dodeca_cox
 
 	50000_generic_ground_vehicle

@@ -1,0 +1,189 @@
+#!/bin/sh
+#
+# @name Generic Quadcopter
+#
+# @type Quadrotor x
+# @class Copter
+#
+# @output MAIN1 motor 1
+# @output MAIN2 motor 2
+# @output MAIN3 motor 3
+# @output MAIN4 motor 4
+# @output MAIN5 feed-through of RC AUX1 channel
+# @output MAIN6 feed-through of RC AUX2 channel
+#
+# @output AUX1 feed-through of RC AUX1 channel
+# @output AUX2 feed-through of RC AUX2 channel
+# @output AUX3 feed-through of RC AUX3 channel
+# @output AUX4 feed-through of RC FLAPS channel
+#
+#
+
+set ESC_TTY /dev/ttyS4
+set OUTPUT_MODE tap_esc
+sh /etc/init.d/rc.mc_defaults
+
+set PARAM_DEFAULTS_VER 1
+set MIXER quad_x
+
+if param compare SYS_PARAM_VER ${PARAM_DEFAULTS_VER}
+then
+else
+	echo "New parameter VER: Resetting params"
+	set NEW_DEFAULTS yes
+fi
+
+if [ ${NEW_DEFAULTS} = yes ]
+then
+
+	param set MC_PITCHRATE_P 0.08
+	param set MC_PITCHRATE_I 0.1
+	param set MC_PITCHRATE_D 0.002
+	param set MC_PITCHRATE_FF 0.002
+	param set MC_PITCH_P 7.5
+	param set MC_PITCHRATE_MAX 220.0
+
+	param set MC_ROLLRATE_P 0.08
+	param set MC_ROLLRATE_I 0.1
+	param set MC_ROLLRATE_D 0.002
+	param set MC_ROLLRATE_FF 0.002
+	param set MC_ROLL_P 7.5
+	param set MC_ROLLRATE_MAX 220.0
+
+	param set MC_YAWRATE_MAX 100
+	param set MPC_MAN_Y_MAX 100
+	param set MC_YAWRATE_FF 0.08
+	param set MC_YAW_P 2.8
+	param set MC_YAWRATE_P 0.1
+	param set MC_YAWRATE_I 0.1
+	param set MC_YAWRATE_D 0
+
+	param set MPC_YAW_EXPO 0.4
+	param set MPC_YAW_MODE 4
+
+	param set MPC_XY_P 0.95
+	param set MPC_XY_VEL_P 0.15
+	param set MPC_XY_VEL_I 0.02
+	param set MPC_XY_VEL_D 0.01
+	param set MPC_XY_MAN_EXPO 0.4
+	param set MPC_HOLD_MAX_XY 0.3
+	param set MPC_XY_CRUISE 10.0
+	param set MPC_XY_VEL_MAX 12.0
+	param set MPC_VEL_MANUAL 12.0
+
+	param set MPC_Z_P 0.85
+	param set MPC_Z_VEL_P 0.25
+	param set MPC_Z_VEL_I 0.085
+	param set MPC_Z_VEL_D 0.0
+	param set MPC_TKO_RAMP_T 1.5
+
+	param set MPC_ACC_DOWN_MAX 1.0
+	param set MPC_ACC_UP_MAX 3.0
+	param set MPC_ACC_HOR_MAX 10.0
+	param set MPC_ACC_HOR 8.0
+	param set MPC_DEC_HOR_SLOW 1
+
+	param set MPC_Z_VEL_MAX_DN 2.5
+	param set MPC_Z_VEL_MAX_UP 3.0
+
+	param set MPC_JERK_MAX 15.0
+	param set MPC_JERK_MIN 0.1
+
+	param set MPC_LAND_SPEED 0.8
+
+	# hover thrust
+	param set MPC_THR_HOVER 0.49
+
+	# Manual stick input parameters
+	param set RC_FLT_SMP_RATE 33
+	param set RC_FLT_CUTOFF 5
+
+	param set MPC_AUTO_MODE 1
+	param set MPC_ALT_MODE 0
+	param set MPC_POS_MODE 1
+
+	# Throttle pid attenuation
+	param set MC_TPA_RATE_P 0.8
+	param set MC_TPA_RATE_I 0.5
+	param set MC_TPA_RATE_D 0.2
+	param set MC_TPA_BREAK_P 0.45
+	param set MC_TPA_BREAK_I 0.6
+	param set MC_TPA_BREAK_D 0.65
+	param set MC_DTERM_CUTOFF 0.0
+	param set IMU_GYRO_CUTOFF 30.0
+
+	# RC
+	param set COM_RC_OVERRIDE 1
+	param set COM_RC_LOSS_T 3
+	param set COM_DL_LOSS_T 10
+	param set COM_ARM_STK_TOL 0.08
+	param set COM_ARM_SWISBTN 1
+	param set COM_LOW_BAT_ACT 3
+
+	param set RC_MAP_THROTTLE 1
+	param set RC_MAP_PITCH 2
+	param set RC_MAP_ROLL 3
+	param set RC_MAP_YAW 4
+	param set RC_MAP_FLTMODE 5
+
+	# Altitude (manual) mode parameters
+	param set MPC_MAN_TILT_MAX 24
+
+	#
+	# Throttle max/min setting
+	#
+	param set MPC_THR_MAX 0.9
+	param set MPC_THR_MIN 0.2
+
+	#
+	# Maximum tilt angle
+	#
+	param set MPC_TILTMAX_AIR 28
+
+	#
+	# Battery setting
+	#
+	param set BAT_N_CELLS 6
+	param set BAT_EMERGEN_THR 0.05
+	param set BAT_CRIT_THR  0.22
+	param set BAT_LOW_THR 0.26
+	param set BAT_V_CHARGED 4.35
+	param set BAT_V_EMPTY 	3.58
+
+	#
+	# Flight modes
+	#
+	param set COM_FLTMODE1 1	# alt
+	param set COM_FLTMODE2 2	# pos
+	param set COM_FLTMODE3 5	# rtl
+
+	param set MPC_LAND_VEL_XY 10
+
+	#
+	# RTL setting
+	#
+	param set RTL_DESCEND_ALT 10
+	param set RTL_LAND_DELAY 1
+
+	# sensor thermal calibration
+	param set SYS_CAL_TDEL 60
+	param set SYS_CAL_ACC_TOL 1
+	param set SYS_CAL_GYRO_TOL 0.1
+
+	param set COM_DISARM_PRFLT 3
+
+	param set EKF2_BARO_NOISE 2.5
+	param set EKF2_GPS_P_NOISE 0.5
+	param set EKF2_GPS_V_NOISE 0.5
+	param set EKF2_GPS_POS_X -0.044
+	param set EKF2_GPS_POS_Y 0.066
+
+	param set EV_TSK_STAT_DIS 1
+
+	param set GPS_1_CONFIG 201
+	param save
+fi
+
+
+# Start esc
+tap_esc start -d ${ESC_TTY} -n 4
