@@ -62,6 +62,7 @@
 #include <uORB/topics/vehicle_control_mode.h>
 #include <uORB/topics/parameter_update.h>
 #include <uORB/topics/battery_status.h>
+#include <uORB/topics/esc_status.h>
 #include <px4_platform_common/px4_work_queue/ScheduledWorkItem.hpp>
 
 #include <DevMgr.hpp>
@@ -136,6 +137,7 @@ private:
 	uORB::Subscription	_actuator_ctrl_0_sub{ORB_ID(actuator_controls_0)};		/**< attitude controls sub */
 	uORB::Subscription	_parameter_update_sub{ORB_ID(parameter_update)};				/**< notification of parameter updates */
 	uORB::Subscription	_vcontrol_mode_sub{ORB_ID(vehicle_control_mode)};		/**< vehicle control mode subscription */
+	uORB::Subscription	_esc_status_sub{ORB_ID(esc_status)};				/**< esc status mode subscription */
 
 	orb_advert_t	_battery_pub[BOARD_NUMBER_BRICKS] {};			/**< battery status */
 	Battery		_battery[BOARD_NUMBER_BRICKS];			/**< Helper lib to publish battery_status topic. */
@@ -318,8 +320,27 @@ BatteryStatus::adc_poll()
 			}
 		}
 
+ #ifdef BOARD_USE_ESC_CURRENT_REPORT
+		// the battery current is estimated by tap esc
+		static float total_current = 0;
+		if (_esc_status_sub.updated()) {
+			esc_status_s esc = {};
+			_esc_status_sub.copy(&esc);
+			/* sum up the reported current of all available ESCs */
+			total_current = 0;
+			for (int i = 0; i < esc.esc_count; i++) {
+				total_current += esc.esc[i].esc_current * 0.01f;
+			}
+		}
+
+		if (PX4_ISFINITE(total_current)) {
+			bat_current_a[0] = total_current;
+		}
+
+#endif
 		if (_parameters.battery_source == 0) {
-			for (int b = 0; b < BOARD_NUMBER_BRICKS; b++) {
+			// for (int b = 0; b < BOARD_NUMBER_BRICKS; b++) {
+			for (int b = 0; b < 1; b++) {
 
 				/* Consider the brick connected if there is a voltage */
 				bool connected = bat_voltage_v[b] > BOARD_ADC_OPEN_CIRCUIT_V;
