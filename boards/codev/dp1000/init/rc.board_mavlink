@@ -1,6 +1,14 @@
 #!/bin/sh
 #
 # PX4 Cocev's dp1000 specific board MAVLink startup script.
+
+set GIMBAL_TTY /dev/ttyS1
+set MAV_RATE 10000
+set BAUDRATE 115200
+
+mavlink start -r ${MAV_RATE} -d ${GIMBAL_TTY} -m config -b ${BAUDRATE}
+mavlink stream -d ${GIMBAL_TTY} -s SYSTEM_TIME -r 0.5
+
 #------------------------------------------------------------------------------
 # Start MAVLink on the USB port
 mavlink start -d /dev/ttyACM0
