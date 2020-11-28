@@ -1,13 +1,104 @@
 name: C/C++ CI
 
-on: [push]
+on:
+  push:
+    branches:
+    - '*'
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  pull_request:
+    branches:
+    - '*'
 
 jobs:
+  releaseBin:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.link_upload_url.outputs.upload_url }}
+
+    steps:
+    - name: Create Release
+      if: ${{ contains(github.ref, 'refs/tags') }}
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{github.ref}}
+        release_name: Release ${{github.ref}}
+        draft: false
+        prerelease: false
+    - name: OutputUR
+      id: link_upload_url
+      run: echo "::set-output name=upload_url::${{ steps.create_release.outputs.upload_url }}"
+
+
   build:
     runs-on: ubuntu-latest
-    container: px4io/px4-dev-base-bionic:2019-10-24
+    needs: releaseBin
+    container: px4io/px4-dev-nuttx:2019-10-24
+    strategy:
+      matrix:
+        config: [
+          codev_dp1000_default,
+        ]
     steps:
     - uses: actions/checkout@v1
-    - name: make
-      run: make
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        submodules: recursive
+    - name: Prepare ccache timestamp
+      id: ccache_cache_timestamp
+      shell: cmake -P {0}
+      run: |
+        string(TIMESTAMP current_date "%Y-%m-%d-%H;%M;%S" UTC)
+        message("::set-output name=timestamp::${current_date}")
+    - name: ccache cache files
+      uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key: ${{matrix.config}}-ccache-${{steps.ccache_cache_timestamp.outputs.timestamp}}
+        restore-keys: ${{matrix.config}}-ccache-
+    - name: setup ccache
+      run: |
+          mkdir -p ~/.ccache
+          echo "base_dir = ${GITHUB_WORKSPACE}" > ~/.ccache/ccache.conf
+          echo "compression = true" >> ~/.ccache/ccache.conf
+          echo "compression_level = 6" >> ~/.ccache/ccache.conf
+          echo "max_size = 400M" >> ~/.ccache/ccache.conf
+          ccache -s
+          ccache -z
+    - name: check_format
+      run: make check_format
 
+    - name: make ${{matrix.config}}
+      run: make ${{matrix.config}}
+    # - name: ccache post-run
+    #   run: ccache -s
+
+    - name: Upload px4 package
+      uses: actions/upload-artifact@v1
+      with:
+        name: px4_package_${{matrix.config}}
+        path: build/${{matrix.config}}/${{matrix.config}}.px4
+
+    - name: Create Version
+      if: ${{ contains(github.ref, 'refs/tags') }}
+      shell: bash
+      run: |
+        cd build/${{matrix.config}}/ &&\
+        echo "##[set-output name=filename;]$(echo `ls`)" &&\
+        echo "##[set-output name=version;]$(echo `ls`)"
+      id: version
+
+    - name: Upload Release Asset
+      if: ${{ contains(github.ref, 'refs/tags') }}
+      id: upload_release_asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.releaseBin.outputs.upload_url }}
+        asset_path: build/${{matrix.config}}/${{matrix.config}}.px4
+        asset_name: ${{matrix.config}}.px4
+        asset_content_type: application/zip
