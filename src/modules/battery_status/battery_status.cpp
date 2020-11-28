@@ -320,14 +320,16 @@ BatteryStatus::adc_poll()
 			}
 		}
 
- #ifdef BOARD_USE_ESC_CURRENT_REPORT
+#ifdef BOARD_USE_ESC_CURRENT_REPORT
 		// the battery current is estimated by tap esc
 		static float total_current = 0;
+
 		if (_esc_status_sub.updated()) {
 			esc_status_s esc = {};
 			_esc_status_sub.copy(&esc);
 			/* sum up the reported current of all available ESCs */
 			total_current = 0;
+
 			for (int i = 0; i < esc.esc_count; i++) {
 				total_current += esc.esc[i].esc_current * 0.01f;
 			}
@@ -338,6 +340,7 @@ BatteryStatus::adc_poll()
 		}
 
 #endif
+
 		if (_parameters.battery_source == 0) {
 			// for (int b = 0; b < BOARD_NUMBER_BRICKS; b++) {
 			for (int b = 0; b < 1; b++) {
