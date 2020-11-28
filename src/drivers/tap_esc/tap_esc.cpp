@@ -48,7 +48,7 @@
 #include <perf/perf_counter.h>
 #include <px4_module_params.h>
 #include <uORB/Subscription.hpp>
- #include <lib/led/led.h>
+#include <lib/led/led.h>
 #include <uORB/topics/actuator_controls.h>
 #include <uORB/topics/actuator_outputs.h>
 #include <uORB/topics/actuator_armed.h>
@@ -58,7 +58,7 @@
 #include <uORB/topics/esc_status.h>
 #include <uORB/topics/multirotor_motor_limits.h>
 #include <uORB/topics/parameter_update.h>
- #include <uORB/topics/vehicle_status.h>
+#include <uORB/topics/vehicle_status.h>
 
 #include <drivers/drv_hrt.h>
 #include <drivers/drv_mixer.h>
@@ -385,6 +385,7 @@ void TAP_ESC::send_esc_outputs(const uint16_t *pwm, const uint8_t motor_cnt)
 
 		if ((rpm[i] & RUN_CHANNEL_VALUE_MASK) > RPMMAX) {
 			rpm[i] = (rpm[i] & ~RUN_CHANNEL_VALUE_MASK) | RPMMAX;
+
 		} else if ((rpm[i] & RUN_CHANNEL_VALUE_MASK) < RPMSTOPPED) {
 			rpm[i] = (rpm[i] & ~RUN_CHANNEL_VALUE_MASK) | RPMSTOPPED;
 		}
