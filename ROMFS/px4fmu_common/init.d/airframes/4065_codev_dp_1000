@@ -23,7 +23,7 @@ set ESC_TTY /dev/ttyS4
 set OUTPUT_MODE tap_esc
 sh /etc/init.d/rc.mc_defaults
 
-set PARAM_DEFAULTS_VER 1
+set PARAM_DEFAULTS_VER 2
 set MIXER quad_x
 
 if param compare SYS_PARAM_VER ${PARAM_DEFAULTS_VER}
@@ -164,6 +164,9 @@ then
 	#
 	param set RTL_DESCEND_ALT 10
 	param set RTL_LAND_DELAY 1
+
+	# Set serial baud
+	param set SER_TEL1_BAUD 115200
 
 	# sensor thermal calibration
 	param set SYS_CAL_TDEL 60
