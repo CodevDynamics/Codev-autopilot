@@ -113,6 +113,7 @@ px4_add_board(
 		usb_connected
 		ver
 		work_queue
+		esc_config
 
 	EXAMPLES
 		bottle_drop # OBC challenge
