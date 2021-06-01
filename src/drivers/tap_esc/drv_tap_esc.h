@@ -46,6 +46,8 @@
 #define TAP_ESC_MAX_MOTOR_NUM 8
 
 #define PACKET_HEAD 0xfe
+#define PACKET_ID_MASK	0x55
+
 
 /* ESC_POS maps the values stored in the channelMapTable to reorder the ESC's
  * id so that that match the mux setting, so that the ressonder's data
@@ -137,10 +139,37 @@ typedef enum {
 	REQUEST_INFO_DEVICE,
 } InfoTypes;
 
+/****** IdDoCmd ***********/
+// the real packet definition for ESCBUS_MSG_ID_DO_CMD
+// command definition
+typedef enum {
+	DO_RESET = 0,
+	DO_STUDY,
+	DO_ID_ASSIGNMENT,
+	DO_POWER_TEST,
+} ESCBUS_ENUM_COMMAND;
+
+
 typedef  struct {
 	uint8_t  channelID;
 	uint8_t  requestInfoType;
 } InfoRequest;
+
+typedef struct {
+	uint8_t id_mask;
+	uint8_t child_cmd;
+	uint8_t id;
+} EscbusConfigidPacket;
+
+typedef struct {
+	uint16_t frequency; // 0 - 20kHz
+	uint16_t duration_ms;
+	uint8_t strength;
+} EscbusTunePacket;
+
+typedef  struct {
+	uint8_t  escID;
+} AssignedIdResponse;
 
 /****** InfoRequest ***********/
 
@@ -152,8 +181,11 @@ typedef  struct {
 		InfoRequest 		reqInfo;
 		ConfigInfoBasicRequest 	reqConfigInfoBasic;
 		RunReq			reqRun;
+		EscbusTunePacket	tunePacket;
+		EscbusConfigidPacket    configidPacket;
 		ConfigInfoBasicResponse rspConfigInfoBasic;
 		RunInfoRepsonse		rspRunInfo;
+		AssignedIdResponse      rspAssignedId;
 		uint8_t bytes[100];
 	} d;
 	uint8_t crc_data;
