@@ -2729,7 +2729,12 @@ PX4IO::ioctl(file *filep, int cmd, unsigned long arg)
 
 	case PX4IO_REBOOT_BOOTLOADER:
 		if (system_status() & PX4IO_P_STATUS_FLAGS_SAFETY_OFF) {
-			return -EINVAL;
+			if (_armed) {
+				return -EINVAL;
+
+			} else {
+				io_reg_set(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_FORCE_SAFETY_ON, PX4IO_FORCE_SAFETY_MAGIC);
+			}
 		}
 
 		/* reboot into bootloader - arg must be PX4IO_REBOOT_BL_MAGIC */
