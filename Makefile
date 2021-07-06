@@ -475,6 +475,7 @@ validate_module_configs:
 clean:
 	@[ ! -d "$(SRC_DIR)/build" ] || find "$(SRC_DIR)/build" -mindepth 1 -maxdepth 1 -type d -exec sh -c "echo {}; cmake --build {} -- clean || rm -rf {}" \; # use generated build system to clean, wipe build directory if it fails
 	@git submodule foreach git clean -dX --force # some submodules generate build artifacts in source
+	@rm -rf "$(SRC_DIR)/build"
 
 submodulesclean:
 	@git submodule foreach --quiet --recursive git clean -ff -x -d
