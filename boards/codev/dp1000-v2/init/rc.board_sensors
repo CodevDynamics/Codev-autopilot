@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+# PX4 dp1000 specific board sensors init
+#------------------------------------------------------------------------------
+
+board_adc start
+
+# # Internal SPI bus ICM-20602
+icm20602 -s -R 12 start
+
+# Internal SPI bus ICM-20689
+icm20689 -s -R 10  start
+
+# Internal SPI bus BMI055 accel and gyro
+bmi055 -A -R 10 -s start
+bmi055 -G -R 10 -s start
+
+# Possible external compasses
+# codev ist8310 compass ox0f
+ist8310 -X -b 1 -a 0x0f -R 2 start
+
+# yuneec ist8310 compass 0x0e
+ist8310 -X -b 1 -a 0x0e -R 0 start
+ist8310 -X -b 2 -a 0x0f -R 2 start
+
+lis3mdl -X start
+
+# Possible internal compass
+ist8310 -X -b 5 -a 0x0f -R 2 start
+
+# Baro on internal I2C
+#mpc2520 -I start
+bmp388 -X start
