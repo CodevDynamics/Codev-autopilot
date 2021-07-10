@@ -326,6 +326,12 @@
 #define BOARD_LED2_BIT    (1 << BOARD_LED2)
 #define BOARD_LED3_BIT    (1 << BOARD_LED3)
 
+/*ESC LEDS*/
+#define BOARD_FRONT_LED_MASK (1 << 0) | (1 << 2)
+#define BOARD_REAR_LED_MASK  (1 << 1) | (1 << 3)
+#define BOARD_LEFT_LED_MASK  (0)
+#define BOARD_RIGHT_LED_MASK (0)
+
 /* If CONFIG_ARCH_LEDS is defined, the usage by the board port is defined in
  * include/board.h and src/stm32_leds.c. The LEDs are used to encode OS-related
  * events as follows:
@@ -363,7 +369,7 @@
 
 #define GPIO_USART3_RX   GPIO_USART3_RX_3      /* PD9  */
 #define GPIO_USART3_TX   GPIO_USART3_TX_3      /* PD8  */
-#define GPIO_USART3_RTS  GPIO_USART3_RTS_2     /* PD12 */
+#define GPIO_USART3_RTS  GPIO_USART3_RTS_1     /* PB14 */
 #define GPIO_USART3_CTS  GPIO_USART3_CTS_NSS_2 /* PD11 */
 
 #define GPIO_UART4_RX    GPIO_UART4_RX_5       /* PD0 */
@@ -383,15 +389,15 @@
 #define GPIO_UART8_RX    GPIO_UART8_RX_1       /* PE0 */
 #define GPIO_UART8_TX    GPIO_UART8_TX_1       /* PE1 */
 
-/* CAN
- *
- * CAN1 is routed to transceiver.
- * CAN2 is routed to transceiver.
- */
-#define GPIO_CAN1_RX     GPIO_CAN1_RX_5        /* PI9  */
-#define GPIO_CAN1_TX     GPIO_CAN1_TX_4        /* PH13 */
-#define GPIO_CAN2_RX     GPIO_CAN2_RX_1        /* PB12 */
-#define GPIO_CAN2_TX     GPIO_CAN2_TX_1        /* PB13 */
+// /* CAN
+//  *
+//  * CAN1 is routed to transceiver.
+//  * CAN2 is routed to transceiver.
+//  */
+// #define GPIO_CAN1_RX     GPIO_CAN1_RX_5        /* PI9  */
+// #define GPIO_CAN1_TX     GPIO_CAN1_TX_4        /* PH13 */
+// #define GPIO_CAN2_RX     GPIO_CAN2_RX_1        /* PB12 */
+// #define GPIO_CAN2_TX     GPIO_CAN2_TX_1        /* PB13 */
 
 /* SPI
  * SPI1 sensors

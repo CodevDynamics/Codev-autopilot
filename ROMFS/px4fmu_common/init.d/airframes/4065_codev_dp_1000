@@ -21,17 +21,18 @@
 
 set ESC_TTY /dev/ttyS4
 set OUTPUT_MODE tap_esc
+set VEHICLE_TYPE mc
 sh /etc/init.d/rc.mc_defaults
 
 set PARAM_DEFAULTS_VER 26
 set MIXER quad_x
 
-if param compare SYS_PARAM_VER ${PARAM_DEFAULTS_VER}
-then
-else
-	echo "New parameter VER: Resetting params"
-	set NEW_DEFAULTS yes
-fi
+# if param compare SYS_PARAM_VER ${PARAM_DEFAULTS_VER}
+# then
+# else
+# 	echo "New parameter VER: Resetting params"
+# 	set NEW_DEFAULTS yes
+# fi
 
 if [ ${NEW_DEFAULTS} = yes ]
 then
@@ -62,9 +63,9 @@ then
 	param set MPC_YAW_MODE 4
 
 	param set MPC_XY_P 1.1
-	param set MPC_XY_VEL_P 0.12
-	param set MPC_XY_VEL_I 0.02
-	param set MPC_XY_VEL_D 0.01
+	# param set MPC_XY_VEL_P 0.12
+	# param set MPC_XY_VEL_I 0.02
+	# param set MPC_XY_VEL_D 0.01
 	param set MPC_XY_MAN_EXPO 0.4
 	param set MPC_HOLD_MAX_XY 0.15
 	param set MPC_XY_CRUISE 10.0
@@ -73,9 +74,9 @@ then
 	param set MPC_XY_TRAJ_P  0.3
 
 	param set MPC_Z_P 0.85
-	param set MPC_Z_VEL_P 0.35
-	param set MPC_Z_VEL_I 0.085
-	param set MPC_Z_VEL_D 0.0
+	# param set MPC_Z_VEL_P 0.35
+	# param set MPC_Z_VEL_I 0.085
+	# param set MPC_Z_VEL_D 0.0
 	param set MPC_TKO_RAMP_T 1.5
 	param set MPC_Z_MAN_EXPO 0.4
 
@@ -83,13 +84,13 @@ then
 	param set MPC_ACC_UP_MAX 4.0
 	param set MPC_ACC_HOR_MAX 10.0
 	param set MPC_ACC_HOR 8.0
-	param set MPC_DEC_HOR_SLOW 1.5
+	# param set MPC_DEC_HOR_SLOW 1.5
 
 	param set MPC_Z_VEL_MAX_DN 3.0
 	param set MPC_Z_VEL_MAX_UP 4.0
 
 	param set MPC_JERK_MAX 15.0
-	param set MPC_JERK_MIN 0.1
+	# param set MPC_JERK_MIN 0.1
 
 	param set MPC_LAND_SPEED 0.5
 	param set MPC_LAND_ALT1 10.0
@@ -99,7 +100,7 @@ then
 	param set MPC_THR_HOVER 0.49
 
 	# Manual stick input parameters
-	param set RC_FLT_SMP_RATE 33
+	# param set RC_FLT_SMP_RATE 33
 	param set RC_FLT_CUTOFF 5
 
 	param set MPC_AUTO_MODE 1
@@ -107,20 +108,20 @@ then
 	param set MPC_POS_MODE 1
 
 	# Throttle pid attenuation
-	param set MC_TPA_RATE_P 0.8
-	param set MC_TPA_RATE_I 0.5
-	param set MC_TPA_RATE_D 0.2
-	param set MC_TPA_BREAK_P 0.45
-	param set MC_TPA_BREAK_I 0.6
-	param set MC_TPA_BREAK_D 0.65
-	param set MC_DTERM_CUTOFF 0.0
+	# param set MC_TPA_RATE_P 0.8
+	# param set MC_TPA_RATE_I 0.5
+	# param set MC_TPA_RATE_D 0.2
+	# param set MC_TPA_BREAK_P 0.45
+	# param set MC_TPA_BREAK_I 0.6
+	# param set MC_TPA_BREAK_D 0.65
+	# param set MC_DTERM_CUTOFF 0.0
 	param set IMU_GYRO_CUTOFF 30.0
 	param set NAV_ACC_RAD 0.5
 	# RC
 	param set COM_RC_OVERRIDE 1
 	param set COM_RC_LOSS_T 3
 	param set COM_DL_LOSS_T 10
-	param set COM_ARM_STK_TOL 0.08
+	# param set COM_ARM_STK_TOL 0.08
 	param set COM_ARM_SWISBTN 1
 	param set COM_LOW_BAT_ACT 3
 
@@ -159,7 +160,7 @@ then
 	param set BAT_LOW_THR 0.23
 	param set BAT_V_CHARGED 4.35
 	param set BAT_V_EMPTY 	3.58
-	param set BAT_CUR_MULT   0.8
+	# param set BAT_CUR_MULT   0.8
 
 	#
 	# Flight modes
@@ -198,29 +199,31 @@ then
 	param save
 fi
 
-if param greater SYS_ESC_UPDATED 0
-then
-	# If necessary and possible, update ESC firmware before starting the ESC driver
-	if tap_esc_config upload -d /dev/ttyS4 -n 4
-	then
-	# reboot should theoretically not be possible since tap_esc_config runs and
-		# then exits before starting the tap_esc driver. However, currently there are
-		# two problems when omitting the reboot:
-		# 1. When the ESCs are upgraded, tap_esc will be started after the fw has been
-		#    flashed. For some reason the LEDs then blink purple instead of the normal
-		#    pattern.
-		# 2. There is less free memory after an ESC fw upgrade, even though
-		#    tap_esc_config exited. This could indicate a memory leak in the uploader.
-		#
-		# wait for 2s for esc update
-		# first set the param 0, as it can not save the param if reboot too fast
-		param set SYS_ESC_UPDATED 0
-		param set SYS_PARAM_VER ${PARAM_DEFAULTS_VER}
-		usleep 2000000
-		reboot
-	fi
+# if param greater SYS_ESC_UPDATED 0
+# then
+# 	# If necessary and possible, update ESC firmware before starting the ESC driver
+# 	if tap_esc_config upload -d /dev/ttyS4 -n 4
+# 	then
+# 	# reboot should theoretically not be possible since tap_esc_config runs and
+# 		# then exits before starting the tap_esc driver. However, currently there are
+# 		# two problems when omitting the reboot:
+# 		# 1. When the ESCs are upgraded, tap_esc will be started after the fw has been
+# 		#    flashed. For some reason the LEDs then blink purple instead of the normal
+# 		#    pattern.
+# 		# 2. There is less free memory after an ESC fw upgrade, even though
+# 		#    tap_esc_config exited. This could indicate a memory leak in the uploader.
+# 		#
+# 		# wait for 2s for esc update
+# 		# first set the param 0, as it can not save the param if reboot too fast
+# 		param set SYS_ESC_UPDATED 0
+# 		# param set SYS_PARAM_VER ${PARAM_DEFAULTS_VER}
+# 		usleep 2000000
+# 		reboot
+# 	fi
 
-else
-	# Start esc
-	tap_esc start -d ${ESC_TTY} -n 4
-fi
+# else
+# 	# Start esc
+# 	tap_esc start -d ${ESC_TTY} -n 4
+# fi
+
+tap_esc start -d ${ESC_TTY} -n 4

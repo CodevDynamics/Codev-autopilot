@@ -9,13 +9,13 @@ px4_add_board(
 	ROMFSROOT px4fmu_common
 	BUILD_BOOTLOADER
 	IO px4_io-v2_default
+	TAP_ESC dp1000
 	UAVCAN_INTERFACES 1
 	SERIAL_PORTS
 		GPS1:/dev/ttyS0
 		TEL1:/dev/ttyS1
 		TEL2:/dev/ttyS2
-		TEL3:/dev/ttyS4
-		TEL4:/dev/ttyS3
+		TEL3:/dev/ttyS6
 	DRIVERS
 		# adc/ads1115
 		adc/board_adc
@@ -50,6 +50,7 @@ px4_add_board(
 		# roboclaw
 		rpm
 		# smart_battery/batmon
+		tap_esc
 		telemetry # all available telemetry drivers
 		tone_alarm
 		uavcan
@@ -119,6 +120,7 @@ px4_add_board(
 		usb_connected
 		ver
 		work_queue
+		tap_esc_config
 	EXAMPLES
 		fake_gps
 		#fake_imu

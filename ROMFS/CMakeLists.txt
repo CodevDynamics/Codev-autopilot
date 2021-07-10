@@ -155,6 +155,13 @@ if(config_io_board)
 	message(STATUS "ROMFS:  Adding ${iofw_file_relative} -> /etc/extras/${config_io_board}.bin")
 endif()
 
+# Copy CODEV tap_esc firmware binary if configured
+if (config_tap_esc_fw)
+	list(APPEND extras_dependencies
+		copy_tap_esc_fw
+		${fw_esc_bin}
+	)
+endif()
 
 # board bootloader (built or included)
 if(TARGET copy_bootloader_bin)

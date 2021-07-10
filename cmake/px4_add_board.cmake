@@ -155,6 +155,7 @@ function(px4_add_board)
 			LINKER_PREFIX
 			CRYPTO
 			KEYSTORE
+			TAP_ESC
 		MULTI_VALUE
 			DRIVERS
 			MODULES
@@ -238,6 +239,11 @@ function(px4_add_board)
 		# IO board (placed in ROMFS)
 		if(IO)
 			set(config_io_board ${IO} CACHE INTERNAL "IO" FORCE)
+		endif()
+
+		# TAP ESC
+		if(TAP_ESC)
+			set(config_tap_esc_fw ${TAP_ESC} CACHE INTERNAL "TAP_ESC" FORCE)
 		endif()
 
 		if(UAVCAN_PERIPHERALS)

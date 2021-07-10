@@ -167,9 +167,15 @@
  * Silent mode control \ ESC Mux select
  */
 
-#define GPIO_CAN1_SILENT_S0  /* PH2  */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTH|GPIO_PIN2)
-#define GPIO_CAN2_SILENT_S1  /* PH3  */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTH|GPIO_PIN3)
+#define GPIO_CAN1_SILENT_S0  /* PC1  */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTC|GPIO_PIN1)
+#define GPIO_CAN2_SILENT_S1  /* PC2  */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTC|GPIO_PIN2)
+#define GPIO_CAN3_SILENT_S2  /* PC3  */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTC|GPIO_PIN3)
 
+#define BOARD_TAP_ESC_MODE 2 // select closed-loop control mode for the esc
+
+#define BOARD_USE_ESC_CURRENT_REPORT
+
+#define BOARD_MAX_LEDS 4 // Define the number of led this board has
 /* HEATER
  * PWM in future
  */
@@ -289,7 +295,7 @@
 
 #define PWMIN_TIMER                       4
 #define PWMIN_TIMER_CHANNEL    /* T4C2 */ 2
-#define GPIO_PWM_IN            /* PD13 */ GPIO_TIM4_CH2IN
+// #define GPIO_PWM_IN            /* PD13 */ GPIO_TIM4_CH2IN
 
 /* RSSI_IN is grounded via a 10K */
 
@@ -303,6 +309,15 @@
 /* Power switch controls ******************************************************/
 
 #define SPEKTRUM_POWER(_on_true)           VDD_3V3_SPEKTRUM_POWER_EN(_on_true)
+
+
+#define BOARD_HAS_POWER_CONTROL	1
+/*power on/off*/
+#define MS_PWR_BUTTON_DOWN 1500
+#define KEY_AD_GPIO    (GPIO_INPUT|GPIO_PULLUP|GPIO_EXTI|GPIO_PORTC|GPIO_PIN4)
+#define POWER_ON_GPIO  (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_SET|GPIO_PORTC|GPIO_PIN5)
+#define POWER_OFF_GPIO (GPIO_INPUT|GPIO_PULLDOWN|GPIO_PORTC|GPIO_PIN5)
+#define POWER_CHECK_GPIO (GPIO_INPUT|GPIO_PULLUP|GPIO_PORTF|GPIO_PIN0)
 
 #define SDIO_SLOTNO                    0  /* Only one slot */
 #define SDIO_MINOR                     0
@@ -350,12 +365,9 @@
 		PX4_ADC_GPIO,                     \
 		GPIO_HW_REV_DRIVE,                \
 		GPIO_HW_VER_DRIVE,                \
-		GPIO_CAN1_TX,                     \
-		GPIO_CAN1_RX,                     \
-		GPIO_CAN2_TX,                     \
-		GPIO_CAN2_RX,                     \
 		GPIO_CAN1_SILENT_S0,              \
 		GPIO_CAN2_SILENT_S1,              \
+		GPIO_CAN3_SILENT_S2,		  \
 		GPIO_HEATER_OUTPUT,               \
 		GPIO_nPOWER_IN_A,                 \
 		GPIO_nPOWER_IN_B,                 \
@@ -421,6 +433,19 @@ extern void stm32_spiinitialize(void);
 extern void stm32_usbinitialize(void);
 
 extern void board_peripheral_reset(int ms);
+
+void board_pwr_init(int stage);
+
+/****************************************************************************
+ * Name: board_pwr_button_down
+ *
+ * Description:
+ *   Called to Read the logical state of the power button
+ ****************************************************************************/
+
+bool board_pwr_button_down(void);
+
+int board_shutdown(void);
 
 #include <px4_platform_common/board_common.h>
 

@@ -1663,6 +1663,8 @@ Commander::run()
 				       true,
 				       hrt_elapsed_time(&_boot_timestamp));
 
+	power_state_e power_state = power_state_e::idle;
+
 	while (!should_exit()) {
 
 		/* update parameters */
@@ -1767,21 +1769,40 @@ Commander::run()
 		/* handle power button state */
 		if (_power_button_state_sub.updated()) {
 			power_button_state_s button_state;
+			_power_button_state_sub.copy(&button_state);
 
-			if (_power_button_state_sub.copy(&button_state)) {
-				if (button_state.event == power_button_state_s::PWR_BUTTON_STATE_REQUEST_SHUTDOWN) {
-#if defined(CONFIG_BOARDCTL_POWEROFF)
+			if (button_state.event == power_button_state_s::PWR_BUTTON_STATE_DOWN && power_state == power_state_e::idle) {
 
-					if (shutdown_if_allowed() && (px4_shutdown_request() == 0)) {
-						while (1) { px4_usleep(1); }
-					}
+				if (!_armed.armed || _armed.manual_lockdown) {
+					power_state = power_state_e::pending;
+					power_state_next_timestamp = hrt_absolute_time() + 1500000; // button down time is 1.5s
+				}
 
-#endif // CONFIG_BOARDCTL_POWEROFF
+			} else if (button_state.event == power_button_state_s::PWR_BUTTON_STATE_UP
+				   || button_state.event == power_button_state_s::PWR_BUTTON_STATE_IDEL) {
+				if (power_state == power_state_e::pending) { // abort only if not commited yet
+					power_state = power_state_e::idle;
 				}
 			}
 		}
 
 #endif // BOARD_HAS_POWER_CONTROL
+
+		hrt_abstime current_time = hrt_absolute_time();
+
+		if (power_state == power_state_e::pending && current_time > power_state_next_timestamp) {
+			// turn off LEDs
+			rgbled_set_color_and_mode(led_control_s::COLOR_WHITE, led_control_s::MODE_OFF, 0, led_control_s::MAX_PRIORITY);
+			// play shutdown tune
+			set_tune_override(tune_control_s::TUNE_ID_SHUTDOWN);
+			power_state = power_state_e::commited;
+			power_state_next_timestamp = current_time + 500000; // wait 500ms until power off
+
+		} else if (power_state == power_state_e::commited && current_time > power_state_next_timestamp) {
+			power_state = power_state_e::wait_for_poweroff;
+			// px4_shutdown_request(400_ms);
+			px4_reboot_request(false, 400_ms);
+		}
 
 		offboard_control_update();
 

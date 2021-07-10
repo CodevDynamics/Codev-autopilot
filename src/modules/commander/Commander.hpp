@@ -441,4 +441,13 @@ private:
 	uORB::Publication<vehicle_command_ack_s>		_command_ack_pub{ORB_ID(vehicle_command_ack)};
 
 	orb_advert_t _mavlink_log_pub{nullptr};
+
+	enum class power_state_e : uint8_t {
+		idle = 0,
+		pending,
+		commited,
+		wait_for_poweroff
+	};
+
+	hrt_abstime power_state_next_timestamp = 0;
 };

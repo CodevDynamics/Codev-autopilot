@@ -98,6 +98,19 @@ then
 		. ${R}etc/init.d/rc.io
 	fi
 
+	if [ $OUTPUT_MODE = tap_esc ]
+	then
+		set OUTPUT_DEV /dev/tap_esc
+	fi
+
+	if param compare SYS_AUTOSTART 4065
+	then
+		if param greater SYS_HITL 0
+		then
+			set OUTPUT_DEV /dev/tap_esc
+		fi
+	fi
+
 	#
 	# Start IO for RC input if needed.
 	#
@@ -137,7 +150,7 @@ then
 		fi
 	fi
 
-	set OUTPUT_DEV /dev/pwm_output0
+	# set OUTPUT_DEV /dev/pwm_output0
 
 	if [ $OUTPUT_MODE = uavcan_esc ]
 	then

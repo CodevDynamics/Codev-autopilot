@@ -1,6 +1,6 @@
 ############################################################################
 #
-#   Copyright (c) 2016 PX4 Development Team. All rights reserved.
+#   Copyright (c) 2017 PX4 Development Team. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,41 +30,15 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 ############################################################################
-if("${PX4_BOARD_LABEL}" STREQUAL  "bootloader")
-	add_library(drivers_board
-		bootloader_main.c
-		usb.c
+px4_add_module(
+	MODULE systemcmds__tap_esc_config
+	MAIN tap_esc_config
+	STACK_MAIN 2500  # TODO: Figure out what the proper stack size is
+	COMPILE_FLAGS
+	SRCS
+		tap_esc_uploader.cpp
+		tap_esc_config.cpp
+	DEPENDS
+		drivers__tap_esc
 	)
-	target_link_libraries(drivers_board
-		PRIVATE
-			nuttx_arch # sdio
-			nuttx_drivers # sdio
-			bootloader
-	)
-	target_include_directories(drivers_board PRIVATE ${PX4_SOURCE_DIR}/platforms/nuttx/src/bootloader/common)
-
-else()
-	add_library(drivers_board
-		can.c
-		i2c.cpp
-		init.c
-		led.c
-		manifest.c
-		sdio.c
-		spi.cpp
-		timer_config.cpp
-		usb.c
-		pwr.c
-	)
-	add_dependencies(drivers_board arch_board_hw_info)
-
-	target_link_libraries(drivers_board
-		PRIVATE
-			arch_spi
-			arch_board_hw_info
-			drivers__led # drv_led_start
-			nuttx_arch # sdio
-			nuttx_drivers # sdio
-			px4_layer
-	)
-endif()
+# vim: set noet ft=cmake fenc=utf-8 ff=unix :

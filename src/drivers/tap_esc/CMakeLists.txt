@@ -30,41 +30,35 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 ############################################################################
-if("${PX4_BOARD_LABEL}" STREQUAL  "bootloader")
-	add_library(drivers_board
-		bootloader_main.c
-		usb.c
+px4_add_module(
+	MODULE drivers__tap_esc
+	MAIN tap_esc
+	COMPILE_FLAGS
+		-Wno-missing-field-initializers
+	SRCS
+		tap_esc.cpp
+		tap_esc_common.cpp
+	DEPENDS
+		mixer
 	)
-	target_link_libraries(drivers_board
-		PRIVATE
-			nuttx_arch # sdio
-			nuttx_drivers # sdio
-			bootloader
+
+# include the codev ESC binary
+if(DEFINED config_tap_esc_fw)
+	set(fw_file_name "${config_tap_esc_fw}_ESC.bin")
+	message(STATUS "ESC firmware: ${fw_file_name}")
+
+	set(fw_esc_bin "${PX4_SOURCE_DIR}/ROMFS/codev/esc/${fw_file_name}")
+	set(fw_esc_target_dir "${PX4_BINARY_DIR}/romfs_extras")
+	set(renamed_fw_esc_bin "${fw_esc_target_dir}/tap_esc.bin")
+
+	add_custom_command(OUTPUT ${renamed_fw_esc_bin}
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${fw_esc_target_dir}
+		COMMAND cp -f ${fw_esc_bin} ${renamed_fw_esc_bin}
+		DEPENDS ${fw_esc_bin}
+		COMMENT "Copying ${fw_esc_bin} to ${renamed_fw_esc_bin}"
 	)
-	target_include_directories(drivers_board PRIVATE ${PX4_SOURCE_DIR}/platforms/nuttx/src/bootloader/common)
+	add_custom_target(copy_tap_esc_fw DEPENDS ${renamed_fw_esc_bin})
 
 else()
-	add_library(drivers_board
-		can.c
-		i2c.cpp
-		init.c
-		led.c
-		manifest.c
-		sdio.c
-		spi.cpp
-		timer_config.cpp
-		usb.c
-		pwr.c
-	)
-	add_dependencies(drivers_board arch_board_hw_info)
-
-	target_link_libraries(drivers_board
-		PRIVATE
-			arch_spi
-			arch_board_hw_info
-			drivers__led # drv_led_start
-			nuttx_arch # sdio
-			nuttx_drivers # sdio
-			px4_layer
-	)
+	message(WARNING "ESC firmware: Not defined in target cmake. Cannot copy binaries!")
 endif()

@@ -67,9 +67,9 @@
 #define INTERFACE_USB_CONFIG           "/dev/ttyACM0"
 #define BOARD_VBUS                     MK_GPIO_INPUT(GPIO_OTGFS_VBUS)
 
-//#define USE_VBUS_PULL_DOWN
+#define USE_VBUS_PULL_DOWN
 #define INTERFACE_USART                1
-#define INTERFACE_USART_CONFIG         "/dev/ttyS0,115200"
+#define INTERFACE_USART_CONFIG         "/dev/ttyS6,5000000"
 #define BOOT_DELAY_ADDRESS             0x000001a0
 #define BOARD_TYPE                     666
 #define _FLASH_KBYTES                  (*(uint32_t *)0x1FF1E880)
@@ -83,7 +83,12 @@
 #define BOARD_LED_ON                   0
 #define BOARD_LED_OFF                  1
 
+#define POWER_DOWN_RTC_SIGNATURE    0xdeaddead // Written by app fw to not re-power on.
+# define BOARD_POWER_PIN_OUT           (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_SET|GPIO_PORTC|GPIO_PIN5)
+# define BOARD_POWER_ON                 1
+# define BOARD_POWER_OFF                0
 #define SERIAL_BREAK_DETECT_DISABLED   1
+#define CONFIG_BOARDCTL_POWEROFF 	1
 
 /*
  * Uncommenting this allows to force the bootloader through

@@ -9,15 +9,15 @@ board_adc start
 icm20602 -s -R 12 start
 
 # Internal SPI bus ICM-20689
-icm20689 -s -R 10  start
+icm20689 -s -R 4  start
 
 # Internal SPI bus BMI055 accel and gyro
 bmi055 -A -R 10 -s start
 bmi055 -G -R 10 -s start
 
 # Possible external compasses
-# codev ist8310 compass ox0f
-ist8310 -X -b 1 -a 0x0f -R 2 start
+# codev ist8310 compass ox0f f9p
+ist8310 -X -b 1 -a 0x0f -R 4 start
 
 # yuneec ist8310 compass 0x0e
 ist8310 -X -b 1 -a 0x0e -R 0 start

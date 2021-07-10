@@ -162,6 +162,10 @@ stm32_boardinitialize(void)
 {
 	board_on_reset(-1); /* Reset PWM first thing */
 
+	/* Hold power state */
+
+	board_pwr_init(0);
+
 	/* configure LEDs */
 
 	board_autoled_initialize();
@@ -257,6 +261,7 @@ __EXPORT int board_app_initialize(uintptr_t arg)
 		       NULL);
 #endif
 
+	board_pwr_init(1);
 
 	/* initial LED state */
 	drv_led_start();
