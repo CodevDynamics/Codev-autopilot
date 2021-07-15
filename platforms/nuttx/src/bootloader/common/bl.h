@@ -121,6 +121,8 @@ extern uint32_t get_mcu_id(void);
 int get_mcu_desc(int max, uint8_t *revstr);
 extern int check_silicon(void);
 
+void set_red_led(void);
+
 /*****************************************************************************
  * Interface in/output.
  */

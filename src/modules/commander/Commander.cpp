@@ -1800,8 +1800,7 @@ Commander::run()
 
 		} else if (power_state == power_state_e::commited && current_time > power_state_next_timestamp) {
 			power_state = power_state_e::wait_for_poweroff;
-			// px4_shutdown_request(400_ms);
-			px4_reboot_request(false, 400_ms);
+			board_shutdown();
 		}
 
 		offboard_control_update();

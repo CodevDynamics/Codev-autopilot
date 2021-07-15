@@ -269,14 +269,18 @@ board_init(void)
 
 #if INTERFACE_USB
 #if !defined(BOARD_USB_VBUS_SENSE_DISABLED)
+
+#endif
+#endif
+
 	/* enable configured GPIO to sample VBUS */
-#  if defined(USE_VBUS_PULL_DOWN)
+	px4_arch_configgpio(MK_GPIO_INPUT(GPIO_OTGFS_VBUS));
 	px4_arch_configgpio((GPIO_OTGFS_VBUS & GPIO_PUPD_MASK) | GPIO_PULLDOWN);
-#  else
-	px4_arch_configgpio((GPIO_OTGFS_VBUS & GPIO_PUPD_MASK) | GPIO_FLOAT);
-#  endif
-#endif
-#endif
+// #  if defined(USE_VBUS_PULL_DOWN)
+// 	px4_arch_configgpio((GPIO_OTGFS_VBUS & GPIO_PUPD_MASK) | GPIO_PULLDOWN);
+// #  else
+// 	px4_arch_configgpio((GPIO_OTGFS_VBUS & GPIO_PUPD_MASK) | GPIO_FLOAT);
+// #  endif
 
 #if INTERFACE_USART
 #endif
@@ -299,6 +303,11 @@ board_init(void)
 #if defined(BOARD_PIN_LED_BOOTLOADER)
 	/* Initialize LEDs */
 	px4_arch_configgpio(BOARD_PIN_LED_BOOTLOADER);
+#endif
+
+#if defined(BOARD_PIN_LED_RED)
+	/* Initialize LEDs */
+	px4_arch_configgpio(BOARD_PIN_LED_RED);
 #endif
 }
 
@@ -341,7 +350,10 @@ board_deinit(void)
 	/* Initialize LEDs */
 	px4_arch_configgpio(MK_GPIO_INPUT(BOARD_PIN_LED_BOOTLOADER));
 #endif
-
+#if defined(BOARD_PIN_LED_RED)
+	/* Initialize LEDs */
+	px4_arch_configgpio(MK_GPIO_INPUT(BOARD_PIN_LED_RED));
+#endif
 
 
 	/* Clear any RSTR set above and disable the AHB peripheral clocks */
@@ -549,6 +561,13 @@ int check_silicon(void)
 	return 0;
 }
 
+void set_red_led(void)
+{
+#if defined(BOARD_PIN_LED_RED)
+	px4_arch_gpiowrite(BOARD_PIN_LED_RED, BOARD_LED_ON);
+#endif
+}
+
 uint32_t
 flash_func_read_sn(uintptr_t address)
 {
@@ -641,6 +660,7 @@ bootloader_main(void)
 
 	/* Enable the FPU before we hit any FP instructions */
 	SCB_CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2)); /* set CP10 Full Access and set CP11 Full Access */
+	led_toggle(LED_BOOTLOADER);
 
 #if defined(BOARD_POWER_PIN_OUT)
 

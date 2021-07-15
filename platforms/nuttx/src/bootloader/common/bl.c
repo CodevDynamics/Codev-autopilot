@@ -424,9 +424,13 @@ sys_tick_handler(void)
 	for (i = 0; i < NTIMERS; i++)
 		if (timer[i] > 0) {
 			timer[i]--;
+			set_red_led();
+			led_toggle(LED_ACTIVITY);
 		}
 
 	if ((_led_state == LED_BLINK) && (timer[TIMER_LED] == 0)) {
+		// led_toggle(LED_BOOTLOADER);
+		set_red_led();
 		led_toggle(LED_BOOTLOADER);
 		timer[TIMER_LED] = 50;
 	}
