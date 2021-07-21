@@ -79,9 +79,9 @@
 
 /* LEDs are driven with push open drain to support Anode to 5V or 3.3V */
 
-#define GPIO_nLED_RED        /* PB1 */  (GPIO_OUTPUT|GPIO_OPENDRAIN|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTB|GPIO_PIN1)
-#define GPIO_nLED_GREEN      /* PB0 */  (GPIO_OUTPUT|GPIO_OPENDRAIN|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTB|GPIO_PIN0)
-#define GPIO_nLED_BLUE       /* PE9 */  (GPIO_OUTPUT|GPIO_OPENDRAIN|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTE|GPIO_PIN9)
+#define GPIO_nLED_RED        /* PB1 */  (GPIO_OUTPUT|GPIO_OPENDRAIN|GPIO_SPEED_50MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTB|GPIO_PIN1)
+#define GPIO_nLED_GREEN      /* PB0 */  (GPIO_OUTPUT|GPIO_OPENDRAIN|GPIO_SPEED_50MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTB|GPIO_PIN0)
+#define GPIO_nLED_BLUE       /* PE9 */  (GPIO_OUTPUT|GPIO_OPENDRAIN|GPIO_SPEED_50MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTE|GPIO_PIN9)
 
 #define BOARD_HAS_CONTROL_STATUS_LEDS      1
 #define BOARD_OVERLOAD_LED     LED_RED
@@ -115,10 +115,10 @@
 
 /* Define Channel numbers must match above GPIO pin IN(n)*/
 
-#define ADC_BATTERY1_VOLTAGE_CHANNEL        /* PA0 */  ADC1_CH(16)
-#define ADC_BATTERY1_CURRENT_CHANNEL        /* PA1 */  ADC1_CH(17)
-#define ADC_BATTERY2_VOLTAGE_CHANNEL        /* PA2 */  ADC1_CH(14)
-#define ADC_BATTERY2_CURRENT_CHANNEL        /* PA3 */  ADC1_CH(15)
+#define ADC_BATTERY_VOLTAGE_CHANNEL        /* PA0 */  ADC1_CH(16)
+#define ADC_BATTERY_CURRENT_CHANNEL        0
+#define ADC1_12_CHANNEL			   ADC1_CH(14)
+#define ADC1_15_CHANNEL			   ADC1_CH(15)
 #define ADC1_6V6_IN_CHANNEL                 /* PA4 */  ADC1_CH(18)
 #define ADC_RSSI_IN_CHANNEL                 /* PB0 */  ADC1_CH(9)
 #define ADC_SCALED_V5_CHANNEL               /* PC0 */  ADC1_CH(10)
@@ -128,10 +128,8 @@
 #define ADC1_3V3_IN_CHANNEL                 /* PC4 */  ADC1_CH(4)
 
 #define ADC_CHANNELS \
-	((1 << ADC_BATTERY1_VOLTAGE_CHANNEL)       | \
-	 (1 << ADC_BATTERY1_CURRENT_CHANNEL)       | \
-	 (1 << ADC_BATTERY2_VOLTAGE_CHANNEL)       | \
-	 (1 << ADC_BATTERY2_CURRENT_CHANNEL)       | \
+	((1 << ADC_BATTERY_VOLTAGE_CHANNEL)       | \
+	 (1 << ADC_BATTERY_CURRENT_CHANNEL)       | \
 	 (1 << ADC1_6V6_IN_CHANNEL)                | \
 	 (1 << ADC_RSSI_IN_CHANNEL)                | \
 	 (1 << ADC_SCALED_V5_CHANNEL)              | \
@@ -143,7 +141,7 @@
 /* Define Battery 1 Voltage Divider and A per V
  */
 
-#define BOARD_BATTERY1_V_DIV         (18.1f)     /* measured with the provided PM board */
+#define BOARD_BATTERY1_V_DIV         (9.0f)     /* measured with the provided PM board */
 #define BOARD_BATTERY1_A_PER_V       (36.367515152f)
 
 /* HW has to large of R termination on ADC todo:change when HW value is chosen */
@@ -218,9 +216,8 @@
 #define GPIO_nPOWER_IN_B                /* PG2  */ (GPIO_INPUT|GPIO_PULLUP|GPIO_PORTG|GPIO_PIN2)
 #define GPIO_nPOWER_IN_C                /* PG3  */ (GPIO_INPUT|GPIO_PULLUP|GPIO_PORTG|GPIO_PIN3)
 
-#define GPIO_nVDD_BRICK1_VALID          GPIO_nPOWER_IN_A /* Brick 1 Is Chosen */
-#define GPIO_nVDD_BRICK2_VALID          GPIO_nPOWER_IN_B /* Brick 2 Is Chosen  */
-#define BOARD_NUMBER_BRICKS             2
+#define GPIO_VDD_BRICK_VALID          GPIO_nPOWER_IN_A /* Brick 1 Is Chosen */
+#define BOARD_NUMBER_BRICKS             1
 #define GPIO_nVDD_USB_VALID             GPIO_nPOWER_IN_C /* USB     Is Chosen */
 
 #define GPIO_nVDD_5V_PERIPH_EN          /* PG4  */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_SET|GPIO_PORTG|GPIO_PIN4)
@@ -345,8 +342,7 @@
 
 #define BOARD_ADC_SERVO_VALID     (1)
 
-#define BOARD_ADC_BRICK1_VALID  (!px4_arch_gpioread(GPIO_nVDD_BRICK1_VALID))
-#define BOARD_ADC_BRICK2_VALID  (!px4_arch_gpioread(GPIO_nVDD_BRICK2_VALID))
+#define BOARD_ADC_BRICK_VALID  	  (1) //!px4_arch_gpioread(GPIO_VDD_BRICK_VALID))
 
 #define BOARD_ADC_PERIPH_5V_OC  (!px4_arch_gpioread(GPIO_nVDD_5V_PERIPH_OC))
 #define BOARD_ADC_HIPOWER_5V_OC (!px4_arch_gpioread(GPIO_nVDD_5V_HIPOWER_OC))

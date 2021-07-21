@@ -19,6 +19,12 @@
 #include "bl.h"
 #include "uart.h"
 
+// #include "../../../../NuttX/nuttx/arch/arm/src/stm32h7/stm32_lowputc.h"
+// #ifdef CONFIG_DEBUG_FEATURES
+// #  define showprogress(c) arm_lowputc(c)
+// #else
+// #  define showprogress(c)
+// #endif
 
 #define MK_GPIO_INPUT(def) (((def) & (GPIO_PORT_MASK | GPIO_PIN_MASK)) | (GPIO_INPUT))
 
@@ -818,7 +824,7 @@ bootloader_main(void)
 
 	while (1) {
 		/* run the bootloader, come back after an app is uploaded or we time out */
-		bootloader(timeout);
+		bootloader(timeout,usb_connected);
 
 		/* if the force-bootloader pins are strapped, just loop back */
 		if (board_test_force_pin()) {

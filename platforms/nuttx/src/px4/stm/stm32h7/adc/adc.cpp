@@ -40,6 +40,8 @@
 #include <stm32_adc.h>
 #include <stm32_gpio.h>
 
+#include "stdio.h"
+
 /*
  *  If there is only one ADC in use in PX4 and it is not
  *  ADC3 we still need ADC3 for temperature sensing.
@@ -286,7 +288,6 @@ uint32_t px4_arch_adc_sample(uint32_t base_address, unsigned channel)
 	irqstate_t flags = px4_enter_critical_section();
 
 	/* Add a channel mapping for ADC3 on the H7 */
-
 	if (channel == PX4_ADC_INTERNAL_TEMP_SENSOR_CHANNEL) {
 		static bool once = false;
 		channel = ADC3_INTERNAL_TEMP_SENSOR_CHANNEL;

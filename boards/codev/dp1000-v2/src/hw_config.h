@@ -62,14 +62,14 @@
 #define SERIAL1_DEV    0x04
 
 #define APP_LOAD_ADDRESS               0x08020000
-#define BOOTLOADER_DELAY               5000
+#define BOOTLOADER_DELAY               2500
 #define INTERFACE_USB                  1
 #define INTERFACE_USB_CONFIG           "/dev/ttyACM0"
 #define BOARD_VBUS                     MK_GPIO_INPUT(GPIO_OTGFS_VBUS)
 
 #define USE_VBUS_PULL_DOWN
 #define INTERFACE_USART                1
-#define INTERFACE_USART_CONFIG         "/dev/ttyS6,5000000"
+#define INTERFACE_USART_CONFIG         "/dev/ttyS7,57600"
 #define BOOT_DELAY_ADDRESS             0x000001a0
 #define BOARD_TYPE                     666
 #define _FLASH_KBYTES                  (*(uint32_t *)0x1FF1E880)
@@ -80,11 +80,13 @@
 
 #define BOARD_PIN_LED_ACTIVITY         GPIO_nLED_BLUE // BLUE
 #define BOARD_PIN_LED_BOOTLOADER       GPIO_nLED_GREEN // GREEN
+#define BOARD_PIN_LED_RED 	GPIO_nLED_RED
 #define BOARD_LED_ON                   0
 #define BOARD_LED_OFF                  1
 
 #define POWER_DOWN_RTC_SIGNATURE    0xdeaddead // Written by app fw to not re-power on.
-# define BOARD_POWER_PIN_OUT           (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_SET|GPIO_PORTC|GPIO_PIN5)
+# define BOARD_POWER_PIN_OUT         (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_SET|GPIO_PORTC|GPIO_PIN5)
+# define BOARD_FORCE_BL_PIN_IN        (GPIO_INPUT|GPIO_PULLUP|GPIO_PORTC|GPIO_PIN4)
 # define BOARD_POWER_ON                 1
 # define BOARD_POWER_OFF                0
 #define SERIAL_BREAK_DETECT_DISABLED   1

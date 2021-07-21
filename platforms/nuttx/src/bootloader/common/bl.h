@@ -62,7 +62,7 @@ struct boardinfo {
 extern struct boardinfo board_info;
 
 extern void jump_to_app(void);
-extern void bootloader(unsigned timeout);
+extern void bootloader(unsigned timeout,bool usb_connected);
 extern void delay(unsigned msec);
 
 #define BL_WAIT_MAGIC 0x19710317    /* magic number in PWR regs to wait in bootloader */

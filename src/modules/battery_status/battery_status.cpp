@@ -220,6 +220,28 @@ BatteryStatus::adc_poll()
 			}
 		}
 
+#ifdef BOARD_USE_ESC_CURRENT_REPORT
+
+		static float total_current = 0;
+
+		if (_esc_status_sub.updated()) {
+			esc_status_s esc = {};
+			_esc_status_sub.copy(&esc);
+
+			/* sum up the reported current of all available ESCs */
+			total_current = 0;
+
+			for (int i = 0; i < esc.esc_count; i++) {
+				total_current += esc.esc[i].esc_current * 0.01f;
+			}
+		}
+
+		if (PX4_ISFINITE(total_current)) {
+			bat_current_adc_readings[0] = total_current;
+		}
+
+#endif
+
 		for (int b = 0; b < BOARD_NUMBER_BRICKS; b++) {
 
 			actuator_controls_s ctrl{};

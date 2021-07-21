@@ -58,7 +58,7 @@ MavlinkShell::~MavlinkShell()
 {
 	//closing the pipes will stop the thread as well
 	if (_to_shell_fd >= 0) {
-		PX4_INFO("Stopping mavlink shell");
+		// PX4_INFO("Stopping mavlink shell");
 		close(_to_shell_fd);
 	}
 
@@ -75,7 +75,7 @@ int MavlinkShell::start()
 #endif /* __PX4_NUTTX */
 
 
-	PX4_INFO("Starting mavlink shell");
+	// PX4_INFO("Starting mavlink shell");
 
 	int p1[2], p2[2];
 

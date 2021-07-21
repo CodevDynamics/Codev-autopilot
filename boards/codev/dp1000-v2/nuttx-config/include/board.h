@@ -383,7 +383,7 @@
 #define GPIO_USART6_RTS  GPIO_USART6_RTS_1     /* PG12  */
 #define GPIO_USART6_CTS  GPIO_USART6_CTS_NSS_1 /* PG13 */
 
-#define GPIO_UART7_RX    GPIO_UART7_RX_4       /* PF6 */
+#define GPIO_UART7_RX    GPIO_UART7_RX_3       /* PE7 */
 #define GPIO_UART7_TX    GPIO_UART7_TX_3       /* PE8 */
 
 #define GPIO_UART8_RX    GPIO_UART8_RX_1       /* PE0 */
@@ -411,7 +411,7 @@
 #define GPIO_SPI1_SCK    GPIO_SPI1_SCK_1    /* PA5 */
 
 #define GPIO_SPI3_MISO   GPIO_SPI3_MISO_1   /* PB4 */
-#define GPIO_SPI3_MOSI   GPIO_SPI3_MOSI_1   /* PB5 */
+#define GPIO_SPI3_MOSI   GPIO_SPI3_MOSI_4   /* PB5 */
 #define GPIO_SPI3_SCK    GPIO_SPI3_SCK_1    /* PB3 */
 
 #define GPIO_SPI4_MISO   GPIO_SPI4_MISO_1   /* PE13 */

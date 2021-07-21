@@ -607,7 +607,7 @@ crc32(const uint8_t *src, unsigned len, unsigned state)
 }
 
 void
-bootloader(unsigned timeout)
+bootloader(unsigned timeout,bool usb_connected)
 {
 	bl_type = NONE; // The type of the bootloader, whether loading from USB or USART, will be determined by on what port the bootloader recevies its first valid command.
 	volatile uint32_t  bl_state = 0; // Must see correct command sequence to erase and reboot (commit first word)
@@ -637,6 +637,7 @@ bootloader(unsigned timeout)
 		led_off(LED_ACTIVITY);
 
 		do {
+			if (!usb_connected) return;
 			/* if we have a timeout and the timer has expired, return now */
 			if (timeout && !timer[TIMER_BL_WAIT]) {
 				return;
