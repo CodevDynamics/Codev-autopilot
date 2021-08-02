@@ -516,8 +516,9 @@
 
 /* RC Serial port */
 
-#define RC_SERIAL_PORT                     "/dev/ttyS7"
-#define RC_SERIAL_SINGLEWIRE
+#define RC_SERIAL_PORT                     NULL
+// #define RC_SERIAL_SINGLEWIRE
+
 
 #define BOARD_HAS_POWER_CONTROL	1
 /*power on/off*/
