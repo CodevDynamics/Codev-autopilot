@@ -23,7 +23,7 @@ set ESC_TTY /dev/ttyS4
 set OUTPUT_MODE tap_esc
 sh /etc/init.d/rc.mc_defaults
 
-set PARAM_DEFAULTS_VER 2
+set PARAM_DEFAULTS_VER 3
 set MIXER quad_x
 
 if param compare SYS_PARAM_VER ${PARAM_DEFAULTS_VER}
@@ -184,6 +184,12 @@ then
 	param set EV_TSK_STAT_DIS 1
 
 	param set GPS_1_CONFIG 201
+
+	param set MAV_2_CONFIG 104
+	param set MAV_2_MODE 5
+	param set MAV_2_MODE 5
+	param set MAV_2_RATE 10000
+	param set SER_TEL4_BAUD 115200
 	param save
 fi
 
