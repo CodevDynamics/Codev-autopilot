@@ -147,8 +147,6 @@ private:
 	uint8_t    	  _channels_count = 0; 		///< nnumber of ESC channels
 	uint8_t 	  _responding_esc = 0;
 
-	uint16_t _last_motor_out[TAP_ESC_MAX_MOTOR_NUM] = {0, 0, 0, 0, 0, 0, 0, 0};
-
 	MixerGroup	*_mixers = nullptr;
 	uint32_t	_groups_required = 0;
 	uint32_t	_groups_subscribed = 0;
@@ -692,7 +690,6 @@ void TAP_ESC::cycle()
 		// Set remaining motors to RPMSTOPPED to be on the safe side
 		for (uint8_t i = num_outputs; i < TAP_ESC_MAX_MOTOR_NUM; ++i) {
 			motor_out[i] = RPMSTOPPED;
-			_last_motor_out[i] = motor_out[i];
 		}
 
 		_outputs.timestamp = hrt_absolute_time();
@@ -709,8 +706,7 @@ void TAP_ESC::cycle()
 					_esc_feedback.esc[feed_back_data.channelID].esc_state = feed_back_data.ESCStatus;
 					_esc_feedback.esc[feed_back_data.channelID].esc_current = feed_back_data.current;
 					_esc_feedback.esc[feed_back_data.channelID].esc_setpoint_raw = motor_out[feed_back_data.channelID];
-					_esc_feedback.esc[feed_back_data.channelID].esc_setpoint = (float)motor_out[feed_back_data.channelID] * 8.143f -
-							8671.429f;  //1100~6800
+
 					_esc_feedback.esc[feed_back_data.channelID].esc_temperature = (float)feed_back_data.temperature;
 
 					_esc_feedback.esc_connectiontype = esc_status_s::ESC_CONNECTION_TYPE_SERIAL;
