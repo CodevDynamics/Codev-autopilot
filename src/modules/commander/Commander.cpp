@@ -168,6 +168,16 @@ static float _eph_threshold_adj =
 	INFINITY;	///< maximum allowable horizontal position uncertainty after adjustment for flight condition
 static bool _skip_pos_accuracy_check = false;
 
+enum class power_state_e : uint8_t {
+	idle = 0,
+	pending,
+	commited,
+	wait_for_poweroff
+};
+
+hrt_abstime power_state_next_timestamp = 0;
+
+
 /**
  * The daemon app only briefly exists to start
  * the background job. The stack size assigned in the
@@ -1266,6 +1276,8 @@ Commander::run()
 		power_button_state_sub.copy(&button_state);
 	}
 
+	power_state_e power_state = power_state_e::idle;
+
 	if (board_register_power_state_notification_cb(power_button_state_notification_cb) != 0) {
 		PX4_ERR("Failed to register power notification callback");
 	}
@@ -1524,9 +1536,34 @@ Commander::run()
 			power_button_state_s button_state;
 			power_button_state_sub.copy(&button_state);
 
-			if (button_state.event == power_button_state_s::PWR_BUTTON_STATE_REQUEST_SHUTDOWN) {
-				px4_shutdown_request(false, false);
+			if (button_state.event == power_button_state_s::PWR_BUTTON_STATE_DOWN && power_state == power_state_e::idle) {
+
+				if (!armed.armed || armed.manual_lockdown) {
+					power_state = power_state_e::pending;
+					power_state_next_timestamp = hrt_absolute_time() + 1500000; // button down time is 1.5s
+				}
+
+			} else if (button_state.event == power_button_state_s::PWR_BUTTON_STATE_UP
+				   || button_state.event == power_button_state_s::PWR_BUTTON_STATE_IDEL) {
+				if (power_state == power_state_e::pending) { // abort only if not commited yet
+					power_state = power_state_e::idle;
+				}
 			}
+		}
+
+		hrt_abstime current_time = hrt_absolute_time();
+
+		if (power_state == power_state_e::pending && current_time > power_state_next_timestamp) {
+			// turn off LEDs
+			rgbled_set_color_and_mode(led_control_s::COLOR_WHITE, led_control_s::MODE_OFF, 0, led_control_s::MAX_PRIORITY);
+			// play shutdown tune
+			set_tune_override(21);
+			power_state = power_state_e::commited;
+			power_state_next_timestamp = current_time + 500000; // wait 500ms until power off
+
+		} else if (power_state == power_state_e::commited && current_time > power_state_next_timestamp) {
+			power_state = power_state_e::wait_for_poweroff;
+			px4_shutdown_request(false, false);
 		}
 
 		sp_man_sub.update(&sp_man);
@@ -3473,6 +3510,11 @@ void *commander_low_prio_loop(void *arg)
 						answer_command(cmd, vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED, command_ack_pub);
 						calib_ret = do_mag_calibration(&mavlink_log_pub);
 
+						if (calib_ret == PX4_OK) {
+							mavlink_log_critical(&mavlink_log_pub, "Magnetometer calibration is done, rebooting")
+							usleep(400000);
+							px4_shutdown_request(true, false);
+						}
 					} else if ((int)(cmd.param3) == 1) {
 						/* zero-altitude pressure calibration */
 						answer_command(cmd, vehicle_command_s::VEHICLE_CMD_RESULT_DENIED, command_ack_pub);
