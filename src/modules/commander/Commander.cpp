@@ -1559,11 +1559,12 @@ Commander::run()
 			// play shutdown tune
 			set_tune_override(21);
 			power_state = power_state_e::commited;
-			power_state_next_timestamp = current_time + 500000; // wait 500ms until power off
+			power_state_next_timestamp = current_time + 500; // wait 0.5ms until power off
 
 		} else if (power_state == power_state_e::commited && current_time > power_state_next_timestamp) {
 			power_state = power_state_e::wait_for_poweroff;
 			px4_shutdown_request(false, false);
+			px4_shutdown_lock();
 		}
 
 		sp_man_sub.update(&sp_man);
