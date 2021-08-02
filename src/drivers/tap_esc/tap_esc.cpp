@@ -45,6 +45,8 @@
 
 #include <lib/mathlib/mathlib.h>
 #include <lib/cdev/CDev.hpp>
+#include <lib/led/led.h>
+#include <lib/tunes/tunes.h>
 #include <perf/perf_counter.h>
 #include <px4_module_params.h>
 #include <uORB/Subscription.hpp>
@@ -70,6 +72,11 @@
 
 #if !defined(BOARD_TAP_ESC_MODE)
 #  define BOARD_TAP_ESC_MODE 0
+#endif
+
+// Skip ESC ID verification on snapdragon
+#ifdef __PX4_QURT
+#  define BOARD_TAP_ESC_NO_VERIFY_CONFIG
 #endif
 
 #if !defined(DEVICE_ARGUMENT_MAX_LENGTH)
@@ -140,11 +147,20 @@ private:
 	uint8_t    	  _channels_count = 0; 		///< nnumber of ESC channels
 	uint8_t 	  _responding_esc = 0;
 
+	uint16_t _last_motor_out[TAP_ESC_MAX_MOTOR_NUM] = {0, 0, 0, 0, 0, 0, 0, 0};
+
 	MixerGroup	*_mixers = nullptr;
 	uint32_t	_groups_required = 0;
 	uint32_t	_groups_subscribed = 0;
 	ESC_UART_BUF 	_uartbuf = {};
 	EscPacket 	_packet = {};
+
+	Tunes 		_tunes = {};
+	hrt_abstime 	_next_tone = 0;
+	bool 		_play_tone = false;
+	int 		_tune_control_sub = -1;
+	inline void send_tune_packet(EscbusTunePacket &tune_packet);
+
 	LedControlData 	_led_control_data = {};
 	LedController 	_led_controller = {};
 
@@ -200,6 +216,7 @@ TAP_ESC::~TAP_ESC()
 
 	orb_unsubscribe(_armed_sub);
 	orb_unsubscribe(_test_motor_sub);
+	orb_unsubscribe(_tune_control_sub);
 
 	orb_unadvertise(_outputs_pub);
 	orb_unadvertise(_esc_feedback_pub);
@@ -316,6 +333,58 @@ int TAP_ESC::init()
 		return ret;
 	}
 
+	/* set wait time for tap esc configurate and write flash (0.02696s measure by Saleae logic Analyzer) */
+	usleep(30000);
+
+#if !defined(BOARD_TAP_ESC_NO_VERIFY_CONFIG)
+
+	/* Verify All ESC got the config */
+
+	for (uint8_t cid = 0; cid < _channels_count; cid++) {
+
+		/* Send the InfoRequest querying  CONFIG_BASIC */
+		EscPacket packet_info = {PACKET_HEAD, sizeof(InfoRequest), ESCBUS_MSG_ID_REQUEST_INFO};
+		InfoRequest &info_req = packet_info.d.reqInfo;
+		info_req.channelID = _device_mux_map[cid];;
+		info_req.requestInfoType = REQUEST_INFO_BASIC;
+
+		ret = tap_esc_common::send_packet(_uart_fd, packet_info, cid);
+
+		if (ret < 0) {
+			return ret;
+		}
+
+		/* Get a response */
+
+		int retries = 10;
+		bool valid = false;
+
+		while (retries--) {
+
+			tap_esc_common::read_data_from_uart(_uart_fd, &_uartbuf);
+
+			if (tap_esc_common::parse_tap_esc_feedback(&_uartbuf, &_packet) == 0) {
+				valid = (_packet.msg_id == ESCBUS_MSG_ID_CONFIG_INFO_BASIC
+					 && _packet.d.rspConfigInfoBasic.channelID == _device_mux_map[cid]);
+				break;
+
+			} else {
+
+				/* Give it time to come in */
+
+				usleep(1000);
+			}
+		}
+
+		if (!valid) {
+			PX4_ERR("Verification of the configuration failed, ESC number: %d", cid);
+			return -EIO;
+		}
+
+	}
+
+#endif
+
 	/* To Unlock the ESC from the Power up state we need to issue 10
 	 * ESCBUS_MSG_ID_RUN request with all the values 0;
 	 */
@@ -344,6 +413,7 @@ int TAP_ESC::init()
 
 	_armed_sub = orb_subscribe(ORB_ID(actuator_armed));
 	_test_motor_sub = orb_subscribe(ORB_ID(test_motor));
+	_tune_control_sub = orb_subscribe(ORB_ID(tune_control));
 
 	return ret;
 }
@@ -399,7 +469,19 @@ void TAP_ESC::send_esc_outputs(const uint16_t *pwm, const uint8_t motor_cnt)
 				break;
 
 			case led_control_s::COLOR_GREEN:
-				rpm[i] |= RUN_GREEN_LED_ON_MASK;
+				if (_vehicle_status.nav_state == vehicle_status_s::NAVIGATION_STATE_POSCTL) {
+					if (i == 1 || i == 3) {
+						rpm[1] |= RUN_RED_LED_ON_MASK;
+						rpm[3] |= RUN_GREEN_LED_ON_MASK;
+
+					} else {
+						rpm[i] |= RUN_GREEN_LED_ON_MASK;
+					}
+
+				} else {
+					rpm[i] |= RUN_GREEN_LED_ON_MASK;
+				}
+
 				break;
 
 			case led_control_s::COLOR_BLUE:
@@ -448,6 +530,13 @@ void TAP_ESC::send_esc_outputs(const uint16_t *pwm, const uint8_t motor_cnt)
 	if (ret < 1) {
 		PX4_WARN("TX ERROR: ret: %d, errno: %d", ret, errno);
 	}
+}
+
+void TAP_ESC::send_tune_packet(EscbusTunePacket &tune_packet)
+{
+	EscPacket buzzer_packet = {PACKET_HEAD, sizeof(EscbusTunePacket), ESCBUS_MSG_ID_TUNE};
+	buzzer_packet.d.tunePacket = tune_packet;
+	tap_esc_common::send_packet(_uart_fd, buzzer_packet, -1);
 }
 
 void TAP_ESC::cycle()
@@ -603,6 +692,7 @@ void TAP_ESC::cycle()
 		// Set remaining motors to RPMSTOPPED to be on the safe side
 		for (uint8_t i = num_outputs; i < TAP_ESC_MAX_MOTOR_NUM; ++i) {
 			motor_out[i] = RPMSTOPPED;
+			_last_motor_out[i] = motor_out[i];
 		}
 
 		_outputs.timestamp = hrt_absolute_time();
@@ -617,6 +707,12 @@ void TAP_ESC::cycle()
 				if (feed_back_data.channelID < esc_status_s::CONNECTED_ESC_MAX) {
 					_esc_feedback.esc[feed_back_data.channelID].esc_rpm = feed_back_data.speed;
 					_esc_feedback.esc[feed_back_data.channelID].esc_state = feed_back_data.ESCStatus;
+					_esc_feedback.esc[feed_back_data.channelID].esc_current = feed_back_data.current;
+					_esc_feedback.esc[feed_back_data.channelID].esc_setpoint_raw = motor_out[feed_back_data.channelID];
+					_esc_feedback.esc[feed_back_data.channelID].esc_setpoint = (float)motor_out[feed_back_data.channelID] * 8.143f -
+							8671.429f;  //1100~6800
+					_esc_feedback.esc[feed_back_data.channelID].esc_temperature = (float)feed_back_data.temperature;
+
 					_esc_feedback.esc_connectiontype = esc_status_s::ESC_CONNECTION_TYPE_SERIAL;
 					_esc_feedback.counter++;
 					_esc_feedback.esc_count = num_outputs;
@@ -660,6 +756,49 @@ void TAP_ESC::cycle()
 
 		_is_armed = _armed.armed;
 
+	}
+
+	// Handle tunes
+	updated = false;
+	orb_check(_tune_control_sub, &updated);
+	hrt_abstime now = hrt_absolute_time();
+
+	if (updated) {
+		tune_control_s 	tune;
+		orb_copy(ORB_ID(tune_control), _tune_control_sub, &tune);
+
+		if (_tunes.set_control(tune) == 0) {
+			_next_tone = hrt_absolute_time();
+			_play_tone = true;
+
+		} else {
+			_play_tone = false;
+		}
+	}
+
+	unsigned frequency = 0, duration = 0, silence = 0;
+	uint8_t strength = 0;
+	EscbusTunePacket esc_tune_packet;
+
+	if ((now >= _next_tone) && _play_tone) {
+		int parse_ret_val = _tunes.get_next_note(frequency, duration, silence, strength);
+
+		// Is there right now a tone that needs to be played?
+		// the return value is 0 if one tone need to be played and 1 if the sequence needs to continue
+		if (parse_ret_val >= 0 && frequency > 0 && duration > 0 && strength > 0 &&
+		    (!_is_armed || _armed.manual_lockdown)) {
+			esc_tune_packet.frequency = frequency;
+			esc_tune_packet.duration_ms = (uint16_t)(duration / 1000); // convert to ms
+			esc_tune_packet.strength =  strength / 2;
+
+			send_tune_packet(esc_tune_packet);
+		}
+
+		// set next tone call time
+		_next_tone = now + silence + duration;
+
+		// Does a tone follow after this one?
+		_play_tone = (parse_ret_val > 0);
 	}
 
 	// check for parameter updates
@@ -775,7 +914,7 @@ int TAP_ESC::task_spawn(int argc, char *argv[])
 	_task_id = px4_task_spawn_cmd("tap_esc",
 				      SCHED_DEFAULT,
 				      SCHED_PRIORITY_ACTUATOR_OUTPUTS,
-				      1180,
+				      1480,
 				      (px4_main_t)&run_trampoline,
 				      argv);
 

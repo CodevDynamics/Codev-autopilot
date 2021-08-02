@@ -73,7 +73,7 @@
 #define RPMMAX 1900
 #define RPMMIN 1200
 #define RPMSTOPPED (RPMMIN - 10)
-
+#define ESC_HAVE_TEMPERATURE_SENSOR 1
 
 #define MAX_BOOT_TIME_MS		 (550) // Minimum time to wait after Power on before sending commands
 
