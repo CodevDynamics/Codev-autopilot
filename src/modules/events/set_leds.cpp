@@ -123,7 +123,8 @@ void StatusDisplay::set_leds()
 
 	if (nav_state != _old_nav_state || gps_lock_valid != _old_gps_lock_valid
 	    || home_position_valid != _old_home_position_valid
-	    || _battery_status_sub.get().warning != _old_battery_status_warning) {
+	    || _battery_status_sub.get().warning != _old_battery_status_warning
+	    || hrt_absolute_time() < 10 * 1000000) {
 		publish();
 	}
 
