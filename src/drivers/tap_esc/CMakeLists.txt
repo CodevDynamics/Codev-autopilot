@@ -40,6 +40,7 @@ px4_add_module(
 		tap_esc_common.cpp
 	DEPENDS
 		mixer
+		led_flash
 	)
 
 # include the codev ESC binary

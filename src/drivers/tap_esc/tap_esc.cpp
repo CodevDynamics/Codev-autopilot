@@ -45,7 +45,7 @@
 
 #include <lib/mathlib/mathlib.h>
 #include <lib/cdev/CDev.hpp>
-#include <lib/led/led.h>
+#include <lib/led_flash/led_flash.h>
 #include <lib/tunes/tunes.h>
 #include <perf/perf_counter.h>
 #include <px4_platform_common/module_params.h>
@@ -161,8 +161,8 @@ private:
 	int 		_tune_control_sub = -1;
 	inline void send_tune_packet(EscbusTunePacket &tune_packet);
 
-	LedControlData 	_led_control_data = {};
-	LedController 	_led_controller = {};
+	LedFlashControlData _flash_led_control_data = {};
+	LedFlashController _flash_led_controller = {};
 
 	DEFINE_PARAMETERS(
 		(ParamInt<px4::params::MC_AIRMODE>) _param_mc_airmode   ///< multicopter air-mode
@@ -447,7 +447,7 @@ void TAP_ESC::subscribe()
 void TAP_ESC::send_esc_outputs(const uint16_t *pwm, const uint8_t motor_cnt)
 {
 	uint16_t rpm[TAP_ESC_MAX_MOTOR_NUM] = {};
-	_led_controller.update(_led_control_data);
+	_flash_led_controller.update(_flash_led_control_data);
 
 	for (uint8_t i = 0; i < motor_cnt; i++) {
 		rpm[i] = pwm[i];
@@ -461,7 +461,7 @@ void TAP_ESC::send_esc_outputs(const uint16_t *pwm, const uint8_t motor_cnt)
 
 		// apply the led color
 		if (i < BOARD_MAX_LEDS) {
-			switch (_led_control_data.leds[i].color) {
+			switch (_flash_led_control_data.leds[i].color) {
 			case led_control_s::COLOR_RED:
 				rpm[i] |= RUN_RED_LED_ON_MASK;
 				break;
