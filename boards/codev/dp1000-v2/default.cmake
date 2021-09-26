@@ -10,7 +10,6 @@ px4_add_board(
 	BUILD_BOOTLOADER
 	IO px4_io-v2_default
 	TAP_ESC dp1000
-	UAVCAN_INTERFACES 1
 	SERIAL_PORTS
 		GPS1:/dev/ttyS0
 		TEL1:/dev/ttyS1
@@ -20,21 +19,21 @@ px4_add_board(
 		# adc/ads1115
 		adc/board_adc
 		barometer # all available barometer drivers
-		batt_smbus
+		# batt_smbus
 		camera_capture
 		camera_trigger
 		differential_pressure # all available differential pressure drivers
 		distance_sensor # all available distance sensor drivers
-		dshot
+		# dshot
 		gps
 		heater
 		#imu # all available imu drivers
-		imu/analog_devices/adis16448
-		imu/bosch/bmi088
-		imu/bosch/bmi055
+		# imu/analog_devices/adis16448
+		# imu/bosch/bmi088
+		# imu/bosch/bmi055
 		imu/invensense/icm20689
-		imu/invensense/icm20948 # required for ak09916 mag
-		imu/invensense/icm20602 # required for ak09916 mag
+		# imu/invensense/icm20948 # required for ak09916 mag
+		# imu/invensense/icm20602 # required for ak09916 mag
 		#irlock
 		# lights # all available light drivers
 		magnetometer # all available magnetometer drivers
@@ -53,7 +52,6 @@ px4_add_board(
 		tap_esc
 		telemetry # all available telemetry drivers
 		tone_alarm
-		uavcan
 	MODULES
 		airspeed_selector
 		# attitude_estimator_q
@@ -62,7 +60,7 @@ px4_add_board(
 		commander
 		dataman
 		ekf2
-		esc_battery
+		# esc_battery
 		events
 		flight_mode_manager
 		fw_att_control
@@ -102,7 +100,7 @@ px4_add_board(
 		mft
 		mixer
 		motor_ramp
-		motor_test
+		# motor_test
 		mtd
 		nshterm
 		param
@@ -122,7 +120,7 @@ px4_add_board(
 		work_queue
 		tap_esc_config
 	EXAMPLES
-		fake_gps
+		# fake_gps
 		#fake_imu
 		#fake_magnetometer
 		#fixedwing_control # Tutorial code from https://px4.io/dev/example_fixedwing_control
