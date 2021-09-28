@@ -90,18 +90,9 @@ public:
 	 */
 	int update(LedFlashControlData &control_data);
 
-	int BREATHE_INTERVAL = 25 * 1000; /**< single step when in breathe mode */
-	int BREATHE_STEPS = 64; /**< number of steps in breathe mode for a full on-off cycle */
-
-	int BLINK_FAST_DURATION = 100 * 1000; /**< duration of half a blinking cycle
-									(on-to-off and off-to-on) in us */
-	int BLINK_NORMAL_DURATION = 500 * 1000; /**< duration of half a blinking cycle
-									(on-to-off and off-to-on) in us */
-	int BLINK_SLOW_DURATION = 2000 * 1000; /**< duration of half a blinking cycle
-							(on-to-off and off-to-on) in us */
-
 #define LED_ON_TIME_MS  100 * 1000
-#define LED_OFF_TIME_MS 1450 * 1000
+#define LED_OFF_SHORT_TIME_MS  100 * 1000
+#define LED_OFF_LONG_TIME_MS 2300 * 1000
 
 private:
 
@@ -118,7 +109,7 @@ private:
 	hrt_abstime _last_update_call{0};
 	bool _force_update{true}; ///< force an orb_copy in the beginning
 	bool _breathe_enabled{false}; ///< true if at least one of the led's is currently in breathe mode
-	uint8_t led_on_off = led_control_s::MODE_ON;
+	uint8_t led_on_off_state = 0;
 
 	uint16_t current_blink_duration = 1000;
 };

@@ -46,6 +46,8 @@ int LedFlashController::update(LedFlashControlData &control_data)
 	led_control_s led_control = {};
 
 	uint8_t led_mask_mark = 0;
+	bool led_off_short = false;
+	hrt_abstime led_off_time = 0;
 
 	_led_control_sub.updated();
 
@@ -66,26 +68,16 @@ int LedFlashController::update(LedFlashControlData &control_data)
 			}
 
 			// tranlate led status
-			switch (led_on_off) {
-			case led_control_s::MODE_OFF:
-				if (led_control.led_mask & (1 << i)) {
-					led_mask_mark = (led_control.led_mask & (BOARD_REAR_LED_MASK));
+			// Four steps:
+			// 0: short time led on
+			// 1: short time led off
+			// 2: short time led on
+			// 3: long time led off
+			switch (led_on_off_state) {
+			case 0:
+			case 2:
 
-					if (led_mask_mark & (1 << i)) {
-						control_data.leds[i].color = led_control_s::COLOR_OFF;
-						control_data.leds[i].brightness = 0;
-					}
-
-				}
-
-				if (hrt_elapsed_time(&_last_update_call) > LED_OFF_TIME_MS) {
-					led_on_off = led_control_s::MODE_ON;
-					_last_update_call = now;
-				}
-
-				break;
-
-			case led_control_s::MODE_ON:
+				// led on
 				if (led_control.led_mask & (1 << i)) {
 					led_mask_mark = (led_control.led_mask & (BOARD_REAR_LED_MASK));
 
@@ -100,21 +92,40 @@ int LedFlashController::update(LedFlashControlData &control_data)
 				}
 
 				if (hrt_elapsed_time(&_last_update_call) > LED_ON_TIME_MS) {
-					led_on_off = led_control_s::MODE_OFF;
 					_last_update_call = now;
+					led_on_off_state = (led_on_off_state == 0) ? 1 : 3;
+				}
+
+				break;
+
+			case 1:
+			case 3:
+
+				// led off
+				if (led_control.led_mask & (1 << i)) {
+					led_mask_mark = (led_control.led_mask & (BOARD_REAR_LED_MASK));
+
+					if (led_mask_mark & (1 << i)) {
+						control_data.leds[i].color = led_control_s::COLOR_OFF;
+						control_data.leds[i].brightness = 0;
+					}
+
+				}
+
+				led_off_short = (led_on_off_state == 1);
+				led_off_time = (led_off_short ? LED_OFF_SHORT_TIME_MS : LED_OFF_LONG_TIME_MS);
+
+				if (hrt_elapsed_time(&_last_update_call) > led_off_time) {
+					_last_update_call = now;
+					led_on_off_state = led_off_short ? 2 : 0;
 				}
 
 				break;
 
 			default:
-				led_on_off = led_control_s::MODE_ON;
-			}
+				led_on_off_state = 0;
+				break;
 
-			// fix the long time do not update led status
-			if (hrt_elapsed_time(&_last_update_call) > (LED_OFF_TIME_MS + LED_ON_TIME_MS)) {
-				control_data.leds[i].color = led_control.color;
-				control_data.leds[i].brightness = 255;
-				led_on_off = led_control_s::MODE_ON;
 			}
 		}
 	}
