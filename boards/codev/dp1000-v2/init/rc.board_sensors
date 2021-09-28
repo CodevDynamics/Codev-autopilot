@@ -17,7 +17,10 @@ bmi055 -G -R 10 -s start
 
 # Possible external compasses
 # codev ist8310 compass ox0f f9p
-ist8310 -X -b 1 -a 0x0f -R 12 start
+# codev normal jms gps
+# ist8310 -X -b 1 -a 0x0f -R 12 start
+# codev normal jms f9p
+ist8310 -X -b 1 -a 0x0f -R 8 start
 
 # yuneec ist8310 compass 0x0e
 ist8310 -X -b 1 -a 0x0e -R 0 start
