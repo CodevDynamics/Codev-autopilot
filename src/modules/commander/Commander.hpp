@@ -232,6 +232,7 @@ private:
 		(ParamBool<px4::params::COM_MOT_TEST_EN>) _param_com_mot_test_en,
 
 		(ParamFloat<px4::params::COM_KILL_DISARM>) _param_com_kill_disarm,
+		(ParamInt<px4::params::COM_MOD_SLOT_EN>) _param_com_mode_slot_en,
 		(ParamFloat<px4::params::COM_LKDOWN_TKO>) _param_com_lkdown_tko,
 
 		// Engine failure

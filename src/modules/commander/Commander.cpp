@@ -1725,6 +1725,7 @@ Commander::run()
 			}
 
 			_status_flags.avoidance_system_required = _param_com_obs_avoid.get();
+			_status_flags.condition_mode_map_rc_channel = _param_com_mode_slot_en.get();
 
 			_status.rc_input_mode = _param_rc_in_off.get();
 
@@ -3058,6 +3059,10 @@ Commander::set_main_state_rc()
 		}
 	}
 
+	if (_manual_control_switches.mode_slot == manual_control_switches_s::MODE_SLOT_NONE) {
+		_arm_requirements.mode_slots_map_channel = true;
+	}
+
 	/* we know something has changed - check if we are in mode slot operation */
 	if (_manual_control_switches.mode_slot != manual_control_switches_s::MODE_SLOT_NONE) {
 
@@ -3074,6 +3079,13 @@ Commander::set_main_state_rc()
 
 		} else {
 			res = try_mode_change(new_mode);
+		}
+
+		if ((main_state_t)new_mode == _internal_state.main_state) {
+			_arm_requirements.mode_slots_map_channel = true;
+
+		} else {
+			_arm_requirements.mode_slots_map_channel = false;
 		}
 
 		return res;

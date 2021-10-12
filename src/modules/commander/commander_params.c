@@ -951,6 +951,16 @@ PARAM_DEFINE_INT32(COM_PREARM_MODE, 0);
 PARAM_DEFINE_INT32(COM_MOT_TEST_EN, 1);
 
 /**
+ * Enable vehicle Mode need to map to rc channel
+ *
+ * If set, need vehicle Mode need to map to rc channel
+ *
+ * @boolean
+ * @group Commander
+ */
+PARAM_DEFINE_INT32(COM_MOD_SLOT_EN, 0);
+
+/**
  * Timeout value for disarming when kill switch is engaged
  *
  * @group Commander
