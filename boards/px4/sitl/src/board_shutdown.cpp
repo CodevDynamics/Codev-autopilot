@@ -46,6 +46,11 @@ int board_register_power_state_notification_cb(power_button_state_notification_t
 {
 	return 0;
 }
+
+int board_shutdown()
+{
+	return 0;
+}
 #endif // BOARD_HAS_POWER_CONTROL
 
 #if defined(CONFIG_BOARDCTL_POWEROFF)
