@@ -2763,11 +2763,6 @@ Commander::run()
 
 		_status_changed = false;
 
-		/* store last position lock state */
-		_last_condition_local_altitude_valid = _status_flags.condition_local_altitude_valid;
-		_last_condition_local_position_valid = _status_flags.condition_local_position_valid;
-		_last_condition_global_position_valid = _status_flags.condition_global_position_valid;
-
 		_was_armed = _armed.armed;
 
 		arm_auth_update(now, params_updated || param_init_forced);
@@ -2863,6 +2858,12 @@ Commander::control_status_leds(bool changed, const uint8_t battery_warning)
 
 			} else if (battery_warning == battery_status_s::BATTERY_WARNING_CRITICAL) {
 				led_color = led_control_s::COLOR_RED;
+
+			} else if (_status.nav_state == vehicle_status_s::NAVIGATION_STATE_AUTO_RTL) {
+				led_color = led_control_s::COLOR_YELLOW;
+
+			} else if (_status.nav_state == vehicle_status_s::NAVIGATION_STATE_AUTO_MISSION) {
+				led_color = led_control_s::COLOR_PURPLE;;
 
 			} else {
 				if (_status_flags.condition_home_position_valid && _status_flags.condition_global_position_valid) {
@@ -2987,17 +2988,20 @@ Commander::set_main_state_rc()
 		}
 
 	} else {
-		// not armed
-		if (!should_evaluate_rc_mode_switch) {
-			// to respect initial switch position (eg POSCTL) force RC switch re-evaluation if estimates become valid
-			const bool altitude_got_valid = (!_last_condition_local_altitude_valid && _status_flags.condition_local_altitude_valid);
-			const bool lpos_got_valid = (!_last_condition_local_position_valid && _status_flags.condition_local_position_valid);
-			const bool gpos_got_valid = (!_last_condition_global_position_valid && _status_flags.condition_global_position_valid);
+		// to respect initial switch position (eg POSCTL) force RC switch re-evaluation if estimates become valid
+		const bool altitude_got_valid = (!_last_condition_local_altitude_valid && _status_flags.condition_local_altitude_valid);
+		const bool lpos_got_valid = (!_last_condition_local_position_valid && _status_flags.condition_local_position_valid);
+		const bool gpos_got_valid = (!_last_condition_global_position_valid && _status_flags.condition_global_position_valid);
 
-			if (altitude_got_valid || lpos_got_valid || gpos_got_valid) {
-				should_evaluate_rc_mode_switch = true;
-			}
+		if (altitude_got_valid || lpos_got_valid || gpos_got_valid) {
+			should_evaluate_rc_mode_switch = true;
 		}
+
+		/* store last position lock state */
+		_last_condition_local_altitude_valid = _status_flags.condition_local_altitude_valid;
+		_last_condition_local_position_valid = _status_flags.condition_local_position_valid;
+		_last_condition_global_position_valid = _status_flags.condition_global_position_valid;
+
 	}
 
 	if (!should_evaluate_rc_mode_switch) {
