@@ -1012,7 +1012,7 @@ __EXPORT int board_mcu_version(char *rev, const char **revstr, const char **erra
  */
 
 int board_register_power_state_notification_cb(power_button_state_notification_t cb);
-
+int board_shutdown(void);
 #endif
 
 /************************************************************************************
