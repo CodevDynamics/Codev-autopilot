@@ -211,10 +211,6 @@ BatteryStatus::adc_poll()
 								      adc_report.v_ref /
 								      adc_report.resolution;
 
-				} else if (adc_report.channel_id[i] == _analogBatteries[b]->get_current_channel()) {
-					bat_current_adc_readings[b] = adc_report.raw_data[i] *
-								      adc_report.v_ref /
-								      adc_report.resolution;
 				}
 
 			}
