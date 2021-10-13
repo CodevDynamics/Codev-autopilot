@@ -2127,7 +2127,7 @@ Commander::run()
 					main_state_transition(_status, commander_state_s::MAIN_STATE_AUTO_MISSION, _status_flags, _internal_state);
 
 				} else {
-					main_state_transition(_status, commander_state_s::MAIN_STATE_AUTO_LOITER, _status_flags, _internal_state);
+					main_state_transition(_status, commander_state_s::MAIN_STATE_POSCTL, _status_flags, _internal_state);
 				}
 			}
 		}
@@ -2852,7 +2852,7 @@ Commander::control_status_leds(bool changed, const uint8_t battery_warning)
 		if (set_normal_color) {
 			/* set color */
 			if (_status.failsafe) {
-				led_color = led_control_s::COLOR_PURPLE;
+				led_color = led_control_s::COLOR_RED;
 
 			} else if (battery_warning == battery_status_s::BATTERY_WARNING_LOW) {
 				led_color = led_control_s::COLOR_AMBER;
@@ -2864,7 +2864,10 @@ Commander::control_status_leds(bool changed, const uint8_t battery_warning)
 				led_color = led_control_s::COLOR_YELLOW;
 
 			} else if (_status.nav_state == vehicle_status_s::NAVIGATION_STATE_AUTO_MISSION) {
-				led_color = led_control_s::COLOR_PURPLE;;
+				led_color = led_control_s::COLOR_PURPLE;
+
+			} else if (_status.nav_state == vehicle_status_s::NAVIGATION_STATE_ALTCTL) {
+				led_color = led_control_s::COLOR_BLUE;
 
 			} else {
 				if (_status_flags.condition_home_position_valid && _status_flags.condition_global_position_valid) {
