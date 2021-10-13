@@ -150,7 +150,10 @@ then
 		fi
 	fi
 
-	# set OUTPUT_DEV /dev/pwm_output0
+	if [ $OUTPUT_DEV = none ]
+	then
+		set OUTPUT_DEV /dev/pwm_output0
+	fi
 
 	if [ $OUTPUT_MODE = uavcan_esc ]
 	then
