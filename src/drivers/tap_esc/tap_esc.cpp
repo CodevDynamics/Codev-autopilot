@@ -452,7 +452,13 @@ void TAP_ESC::send_esc_outputs(const uint16_t *pwm, const uint8_t motor_cnt)
 	_flash_led_controller.update(_flash_led_control_data);
 
 	for (uint8_t i = 0; i < motor_cnt; i++) {
-		rpm[i] = pwm[i];
+
+		if (!_hil_enabled) {
+			rpm[i] = pwm[i];
+
+		} else {
+			rpm[i] = 0;
+		}
 
 		if ((rpm[i] & RUN_CHANNEL_VALUE_MASK) > RPMMAX) {
 			rpm[i] = (rpm[i] & ~RUN_CHANNEL_VALUE_MASK) | RPMMAX;
@@ -703,9 +709,7 @@ void TAP_ESC::cycle()
 
 		_outputs.timestamp = hrt_absolute_time();
 
-		if (!_hil_enabled) {
-			send_esc_outputs(motor_out, num_outputs);
-		}
+		send_esc_outputs(motor_out, num_outputs);
 
 		tap_esc_common::read_data_from_uart(_uart_fd, &_uartbuf);
 
