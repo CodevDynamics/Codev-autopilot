@@ -146,6 +146,7 @@ private:
 	esc_status_s      _esc_feedback = {};
 	uint8_t    	  _channels_count = 0; 		///< nnumber of ESC channels
 	uint8_t 	  _responding_esc = 0;
+	uint8_t		  _last_play_tune_id = 0;
 
 	uint16_t _last_motor_out[TAP_ESC_MAX_MOTOR_NUM] = {0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -157,6 +158,7 @@ private:
 
 	Tunes 		_tunes = {};
 	hrt_abstime 	_next_tone = 0;
+	hrt_abstime     _last_play_tone = 0;
 	bool 		_play_tone = false;
 	int 		_tune_control_sub = -1;
 	inline void send_tune_packet(EscbusTunePacket &tune_packet);
@@ -773,13 +775,24 @@ void TAP_ESC::cycle()
 	if (updated) {
 		tune_control_s 	tune;
 		orb_copy(ORB_ID(tune_control), _tune_control_sub, &tune);
+		Tunes::ControlResult tune_ret = (Tunes::ControlResult) - 1;
+		bool step_out_play = (tune.tune_id == 0) ||
+				     ((_last_play_tone != 0) && ((now - _last_play_tone) < 2000 * 1000) && (tune.tune_id != _last_play_tune_id));
 
-		if (_tunes.set_control(tune) == (Tunes::ControlResult)0) {
-			_next_tone = hrt_absolute_time();
+		if (!step_out_play) {
+			tune_ret = _tunes.set_control(tune);
+
+		}
+
+		if (tune_ret == (Tunes::ControlResult)0 && !step_out_play) {
+			if (tune.tune_id > 0) {
+				_last_play_tone = now;
+			}
+
+			_last_play_tune_id = tune.tune_id;
+			_next_tone = now;
 			_play_tone = true;
 
-		} else {
-			_play_tone = false;
 		}
 	}
 
