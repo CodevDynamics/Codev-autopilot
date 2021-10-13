@@ -824,7 +824,7 @@ bootloader_main(void)
 
 	while (1) {
 		/* run the bootloader, come back after an app is uploaded or we time out */
-		bootloader(timeout,usb_connected);
+		bootloader(timeout, usb_connected);
 
 		/* if the force-bootloader pins are strapped, just loop back */
 		if (board_test_force_pin()) {
