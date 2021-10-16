@@ -45,20 +45,20 @@ px4_add_module(
 
 # include the codev ESC binary
 if(DEFINED config_tap_esc_fw)
-	set(fw_file_name "${config_tap_esc_fw}_ESC.bin")
-	message(STATUS "ESC firmware: ${fw_file_name}")
+	set(fw_esc_bin "${PX4_SOURCE_DIR}/ROMFS/codev/dp1000_esc/")
+	message(STATUS "ESC File: ${fw_esc_bin}")
 
-	set(fw_esc_bin "${PX4_SOURCE_DIR}/ROMFS/codev/esc/${fw_file_name}")
 	set(fw_esc_target_dir "${PX4_BINARY_DIR}/romfs_extras")
-	set(renamed_fw_esc_bin "${fw_esc_target_dir}/tap_esc.bin")
 
-	add_custom_command(OUTPUT ${renamed_fw_esc_bin}
+	message(STATUS "ESC fw_esc_target_dir: ${fw_esc_target_dir}")
+
+	add_custom_command(OUTPUT ${fw_esc_target_dir}
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${fw_esc_target_dir}
-		COMMAND cp -f ${fw_esc_bin} ${renamed_fw_esc_bin}
+		COMMAND cp -r ${fw_esc_bin}/*.bin ${fw_esc_target_dir}
 		DEPENDS ${fw_esc_bin}
-		COMMENT "Copying ${fw_esc_bin} to ${renamed_fw_esc_bin}"
+		COMMENT "Copying ${fw_esc_bin} to ${fw_esc_target_dir}"
 	)
-	add_custom_target(copy_tap_esc_fw DEPENDS ${renamed_fw_esc_bin})
+	add_custom_target(copy_tap_esc_fw DEPENDS ${fw_esc_target_dir})
 
 else()
 	message(WARNING "ESC firmware: Not defined in target cmake. Cannot copy binaries!")
