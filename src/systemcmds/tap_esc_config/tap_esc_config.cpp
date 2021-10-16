@@ -586,7 +586,7 @@ int tap_esc_config_main(int argc, char *argv[]) {
 	const char *device = nullptr;
 	uint8_t num_escs = 0;
 	int8_t id_config_num = -1;
-	const char *firmware_paths[3] = TAP_ESC_FW_SEARCH_PATHS;
+	const char *firmware_paths[4] = TAP_ESC_FW_SEARCH_PATHS;
 	bool verify_config = false;
 
 	while ((ch = px4_getopt(argc, argv, "d:n:t:f:v", &myoptind, &myoptarg)) != EOF) {
@@ -660,8 +660,13 @@ int tap_esc_config_main(int argc, char *argv[]) {
 		return configure_esc_id(device, id_config_num, num_escs);
 
 	} else if (!strcmp(argv[myoptind], "upload")) {
-		return upload_firmware(&firmware_paths[0], device, num_escs);
+		myoptind += 1;
 
+		if (!strcmp(argv[myoptind], "ST")) {
+			return upload_firmware(&firmware_paths[0], device, num_escs);
+		} else if(!strcmp(argv[myoptind], "GD")){
+			return upload_firmware(&firmware_paths[1], device, num_escs);
+		}
 	} else if (!strcmp(argv[myoptind], "update_fw")) {
 		return update_fw(&firmware_paths[0], device, num_escs);
 

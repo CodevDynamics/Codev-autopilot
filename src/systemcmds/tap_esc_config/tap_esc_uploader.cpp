@@ -979,8 +979,8 @@ TAP_ESC_UPLOADER::erase(uint8_t esc_id)
 	erase_packet.d.erase_packet.myID = esc_id;
 	send_packet(erase_packet, esc_id);
 
-	/* read and parse erase feedback packet, blocking 500ms */
-	ret = read_and_parse_data(500);
+	/* read and parse erase feedback packet, blocking 4000ms */
+	ret = read_and_parse_data(4000);
 
 	if (ret != OK) {
 		return ret;
