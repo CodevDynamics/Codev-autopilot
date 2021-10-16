@@ -92,7 +92,7 @@ public:
 
 #define LED_ON_TIME_MS  100 * 1000
 #define LED_OFF_SHORT_TIME_MS  100 * 1000
-#define LED_OFF_LONG_TIME_MS 2300 * 1000
+#define LED_OFF_LONG_TIME_MS 500 * 1000
 
 private:
 
