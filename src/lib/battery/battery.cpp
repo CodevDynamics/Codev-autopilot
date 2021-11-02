@@ -218,6 +218,13 @@ void Battery::estimateStateOfCharge(const float voltage_v, const float current_a
 	} else {
 		_state_of_charge = _state_of_charge_volt_based;
 	}
+
+	// do not allow the remaing vibe
+	if (_state_of_charge_last > 0.0f && _state_of_charge > _state_of_charge_last) {
+		_state_of_charge = _state_of_charge_last;
+	}
+
+	_state_of_charge_last = _state_of_charge;
 }
 
 uint8_t Battery::determineWarning(float state_of_charge)
