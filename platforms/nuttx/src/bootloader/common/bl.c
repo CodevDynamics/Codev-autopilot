@@ -55,6 +55,14 @@
 #include <px4_platform_common/crypto_backend.h>
 #endif
 
+#include "arm_internal.h"
+#include "../../../../NuttX/nuttx/arch/arm/src/stm32h7/stm32_lowputc.h"
+#ifdef CONFIG_DEBUG_FEATURES
+#  define showprogress(c) arm_lowputc(c)
+#else
+#  define showprogress(c)
+#endif
+
 // bootloader flash update protocol.
 //
 // Command format:
@@ -293,6 +301,7 @@ buf_get(void)
 void
 jump_to_app()
 {
+	showprogress('J');
 	const uint32_t *app_base = (const uint32_t *)APP_LOAD_ADDRESS;
 	const uint32_t *vec_base = (const uint32_t *)app_base;
 
@@ -391,22 +400,22 @@ jump_to_app()
 	}
 
 #endif
-
+	showprogress('R');
 	/* just for paranoia's sake */
 	arch_flash_lock();
-
+	showprogress('S');
 	/* kill the systick interrupt */
 	arch_systic_deinit();
-
+	showprogress('T');
 	/* deinitialise the interface */
 	cfini();
-
+	showprogress('U');
 	/* reset the clock */
 	clock_deinit();
-
+	showprogress('V');
 	/* deinitialise the board */
 	board_deinit();
-
+	showprogress('W');
 	/* switch exception handlers to the application */
 	arch_setvtor(vec_base);
 
@@ -609,6 +618,7 @@ crc32(const uint8_t *src, unsigned len, unsigned state)
 void
 bootloader(unsigned timeout, bool usb_connected)
 {
+	showprogress('L');
 	bl_type = NONE; // The type of the bootloader, whether loading from USB or USART, will be determined by on what port the bootloader recevies its first valid command.
 	volatile uint32_t  bl_state = 0; // Must see correct command sequence to erase and reboot (commit first word)
 	uint32_t  address = board_info.fw_size; /* force erase before upload will work */

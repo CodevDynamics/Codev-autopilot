@@ -19,12 +19,12 @@
 #include "bl.h"
 #include "uart.h"
 
-// #include "../../../../NuttX/nuttx/arch/arm/src/stm32h7/stm32_lowputc.h"
-// #ifdef CONFIG_DEBUG_FEATURES
-// #  define showprogress(c) arm_lowputc(c)
-// #else
-// #  define showprogress(c)
-// #endif
+#include "../../../../NuttX/nuttx/arch/arm/src/stm32h7/stm32_lowputc.h"
+#ifdef CONFIG_DEBUG_FEATURES
+#  define showprogress(c) arm_lowputc(c)
+#else
+#  define showprogress(c)
+#endif
 
 #define MK_GPIO_INPUT(def) (((def) & (GPIO_PORT_MASK | GPIO_PIN_MASK)) | (GPIO_INPUT))
 
@@ -280,13 +280,11 @@ board_init(void)
 #endif
 
 	/* enable configured GPIO to sample VBUS */
-	px4_arch_configgpio(MK_GPIO_INPUT(GPIO_OTGFS_VBUS));
+#if defined(USE_VBUS_PULL_DOWN)
 	px4_arch_configgpio((GPIO_OTGFS_VBUS & GPIO_PUPD_MASK) | GPIO_PULLDOWN);
-// #  if defined(USE_VBUS_PULL_DOWN)
-// 	px4_arch_configgpio((GPIO_OTGFS_VBUS & GPIO_PUPD_MASK) | GPIO_PULLDOWN);
-// #  else
-// 	px4_arch_configgpio((GPIO_OTGFS_VBUS & GPIO_PUPD_MASK) | GPIO_FLOAT);
-// #  endif
+#else
+	px4_arch_configgpio((GPIO_OTGFS_VBUS & GPIO_PUPD_MASK) | GPIO_FLOAT);
+#endif
 
 #if INTERFACE_USART
 #endif
@@ -645,6 +643,7 @@ led_toggle(unsigned led)
 void
 arch_do_jump(const uint32_t *app_base)
 {
+	showprogress('4');
 	/* extract the stack and entrypoint from the app vector table and go */
 	uint32_t stacktop = app_base[0];
 	uint32_t entrypoint = app_base[1];
@@ -661,6 +660,7 @@ arch_do_jump(const uint32_t *app_base)
 int
 bootloader_main(void)
 {
+	showprogress('A');
 	bool try_boot = true;			/* try booting before we drop to the bootloader */
 	unsigned timeout = BOOTLOADER_DELAY;	/* if nonzero, drop out of the bootloader after this time */
 
@@ -698,6 +698,7 @@ bootloader_main(void)
 		 */
 		try_boot = false;
 
+		showprogress('B');
 		/*
 		 * Don't drop out of the bootloader until something has been uploaded.
 		 */
@@ -728,12 +729,14 @@ bootloader_main(void)
 
 			if (boot_delay <= BOOT_DELAY_MAX) {
 				try_boot = false;
+				showprogress('C');
 
 				if (timeout < boot_delay * 1000) {
 					timeout = boot_delay * 1000;
 				}
 			}
 		}
+
 	}
 #endif
 
@@ -742,6 +745,7 @@ bootloader_main(void)
 	 * don't try booting.
 	 */
 	if (board_test_force_pin()) {
+		showprogress('D');
 		try_boot = false;
 	}
 
@@ -760,10 +764,12 @@ bootloader_main(void)
 		usb_connected = true;
 		/* don't try booting before we set up the bootloader */
 		try_boot = false;
+		showprogress('E');
 	}
 
 #else
 	try_boot = false;
+	showprogress('F');
 
 #endif
 #endif
@@ -780,6 +786,7 @@ bootloader_main(void)
 	 */
 	if (board_test_usart_receiving_break()) {
 		try_boot = false;
+		showprogress('H');
 	}
 
 #endif
@@ -787,6 +794,7 @@ bootloader_main(void)
 	/* Try to boot the app if we think we should just go straight there */
 	if (try_boot) {
 
+		showprogress('I');
 		/* set the boot-to-bootloader flag so that if boot fails on reset we will stop here */
 #ifdef BOARD_BOOT_FAIL_DETECT
 		board_set_rtc_signature(BOOT_RTC_SIGNATURE);
@@ -821,9 +829,11 @@ bootloader_main(void)
 	gpio_set_af(GPIOC, GPIO_AF0, GPIO9);
 #endif
 
-
 	while (1) {
 		/* run the bootloader, come back after an app is uploaded or we time out */
+		showprogress('K');
+
+
 		bootloader(timeout, usb_connected);
 
 		/* if the force-bootloader pins are strapped, just loop back */
