@@ -383,6 +383,7 @@
 		GPIO_VDD_3V3_SD_CARD_EN,          \
 		GPIO_TONE_ALARM_IDLE,             \
 		GPIO_RSSI_IN,                     \
+		GPIO_OTGFS_VBUS,		  \
 		GPIO_nSAFETY_SWITCH_LED_OUT,      \
 		GPIO_SAFETY_SWITCH_IN,            \
 	}

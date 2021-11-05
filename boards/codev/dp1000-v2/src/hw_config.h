@@ -62,12 +62,12 @@
 #define SERIAL1_DEV    0x04
 
 #define APP_LOAD_ADDRESS               0x08020000
-#define BOOTLOADER_DELAY               2500
+#define BOOTLOADER_DELAY               500
 #define INTERFACE_USB                  1
 #define INTERFACE_USB_CONFIG           "/dev/ttyACM0"
-#define BOARD_VBUS                     MK_GPIO_INPUT(GPIO_OTGFS_VBUS)
+#define BOARD_VBUS                     GPIO_OTGFS_VBUS
 
-#define USE_VBUS_PULL_DOWN
+#define USE_VBUS_PULL_DOWN	       1
 #define INTERFACE_USART                1
 #define INTERFACE_USART_CONFIG         "/dev/ttyS7,57600"
 #define BOOT_DELAY_ADDRESS             0x000001a0
