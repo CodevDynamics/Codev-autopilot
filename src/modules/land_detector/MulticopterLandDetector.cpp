@@ -171,6 +171,10 @@ bool MulticopterLandDetector::_get_ground_contact_state()
 			max_climb_rate = _param_lndmc_z_vel_max.get() * 2.5f;
 		}
 
+		if (_actuator_controls_throttle < _params.minThrottle) {
+			max_climb_rate = land_speed_threshold;
+		}
+
 		_vertical_movement = (fabsf(_vehicle_local_position.vz) > max_climb_rate);
 
 	} else {
@@ -282,6 +286,11 @@ bool MulticopterLandDetector::_get_maybe_landed_state()
 	// Widen acceptance thresholds for landed state right after landed
 	if ((time_now_us - _landed_time) < LAND_DETECTOR_LAND_PHASE_TIME_US) {
 		landThresholdFactor = 2.5f;
+	}
+
+	// Widen acceptance thresholds for Throw away the blades
+	if (_actuator_controls_throttle < sys_min_throttle) {
+		landThresholdFactor = 5.0f;
 	}
 
 	// Next look if all rotation angles are not moving.
