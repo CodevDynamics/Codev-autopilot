@@ -1795,7 +1795,7 @@ Commander::run()
 			// turn off LEDs
 			rgbled_set_color_and_mode(led_control_s::COLOR_WHITE, led_control_s::MODE_OFF, 0, led_control_s::MAX_PRIORITY);
 			// play shutdown tune
-			set_tune_override(tune_control_s::TUNE_ID_SHUTDOWN);
+			set_tune(tune_control_s::TUNE_ID_SHUTDOWN);
 			power_state = power_state_e::commited;
 			power_state_next_timestamp = current_time + 500000; // wait 500ms until power off
 
@@ -2854,13 +2854,11 @@ Commander::control_status_leds(bool changed, const uint8_t battery_warning)
 			if (_status.failsafe) {
 				led_color = led_control_s::COLOR_RED;
 
-			} else if (battery_warning == battery_status_s::BATTERY_WARNING_LOW) {
-				led_color = led_control_s::COLOR_AMBER;
-
-			} else if (battery_warning == battery_status_s::BATTERY_WARNING_CRITICAL) {
+			} else if (battery_warning >= battery_status_s::BATTERY_WARNING_LOW) {
 				led_color = led_control_s::COLOR_RED;
 
-			} else if (_status.nav_state == vehicle_status_s::NAVIGATION_STATE_AUTO_RTL) {
+			} else if (_status.nav_state == vehicle_status_s::NAVIGATION_STATE_AUTO_RTL ||
+				   _status.nav_state == vehicle_status_s::NAVIGATION_STATE_AUTO_LAND) {
 				led_color = led_control_s::COLOR_YELLOW;
 
 			} else if (_status.nav_state == vehicle_status_s::NAVIGATION_STATE_AUTO_MISSION) {
@@ -2990,6 +2988,16 @@ Commander::set_main_state_rc()
 			should_evaluate_rc_mode_switch = false;
 			_last_manual_control_switches = _manual_control_switches;
 		}
+
+		const bool lpos_got_valid = (!_last_condition_local_position_valid && _status_flags.condition_local_position_valid);
+		const bool gpos_got_valid = (!_last_condition_global_position_valid && _status_flags.condition_global_position_valid);
+
+		if (lpos_got_valid || gpos_got_valid) {
+			should_evaluate_rc_mode_switch = true;
+		}
+
+		_last_condition_local_position_valid = _status_flags.condition_local_position_valid;
+		_last_condition_global_position_valid = _status_flags.condition_global_position_valid;
 
 	} else {
 		// to respect initial switch position (eg POSCTL) force RC switch re-evaluation if estimates become valid
@@ -3782,7 +3790,7 @@ void Commander::battery_status_check()
 		// There is at least one connected battery (in any slot)
 		&& (num_connected_batteries > 0)
 		// No currently-connected batteries have any warning
-		&& (_battery_warning == battery_status_s::BATTERY_WARNING_NONE);
+		&& (_battery_warning <= battery_status_s::BATTERY_WARNING_LOW);
 
 	// execute battery failsafe if the state has gotten worse while we are armed
 	if (battery_warning_level_increased_while_armed) {
