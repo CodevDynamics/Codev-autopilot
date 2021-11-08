@@ -40,9 +40,13 @@
 #include "level_calibration.h"
 #include "mag_calibration.h"
 #include "rc_calibration.h"
+#include "commander_helper.h"
 
+#include <drivers/drv_hrt.h>
 #include <px4_platform_common/log.h>
 #include <parameters/param.h>
+#include <px4_platform_common/shutdown.h>
+#include <uORB/topics/tune_control.h>
 
 WorkerThread::~WorkerThread()
 {
@@ -109,6 +113,16 @@ void WorkerThread::threadEntry()
 
 	case Request::MagCalibration:
 		_ret_value = do_mag_calibration(&_mavlink_log_pub);
+
+		if (_ret_value == PX4_OK) {
+			if (px4_reboot_request(false, 1000 * 1000) == 0) {
+				set_tune(tune_control_s::TUNE_ID_SHUTDOWN);
+				mavlink_log_critical(&_mavlink_log_pub, "Magnetometer calibration is done, rebooting");
+
+				while (1) { px4_usleep(1); }
+			}
+		}
+
 		break;
 
 	case Request::RCTrimCalibration:
