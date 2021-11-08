@@ -43,6 +43,7 @@ void Takeoff::generateInitialRampValue(float velocity_p_gain)
 {
 	velocity_p_gain = math::max(velocity_p_gain, 0.01f);
 	_takeoff_ramp_vz_init = -CONSTANTS_ONE_G / velocity_p_gain;
+	_takeoff_ramp_vz_init = 0.0f;
 }
 
 void Takeoff::updateTakeoffState(const bool armed, const bool landed, const bool want_takeoff,
