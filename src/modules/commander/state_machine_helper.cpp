@@ -418,7 +418,7 @@ void enable_failsafe(vehicle_status_s &status, bool old_failsafe, orb_advert_t *
 	if (!old_failsafe && status.arming_state == vehicle_status_s::ARMING_STATE_ARMED) {
 		// make sure intermittent failsafes don't lead to infinite delay by not constantly reseting the timestamp
 		if (status.failsafe_timestamp == 0 ||
-		    hrt_elapsed_time(&status.failsafe_timestamp) > 30_s) {
+		    hrt_elapsed_time(&status.failsafe_timestamp) > 1_s) {
 			status.failsafe_timestamp = hrt_absolute_time();
 		}
 
