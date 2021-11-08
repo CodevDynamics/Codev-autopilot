@@ -278,11 +278,14 @@ void FlightTaskManualAltitude::_respectGroundSlowdown()
 	if (PX4_ISFINITE(_dist_to_ground)) {
 		const float limit_down = math::gradual(_dist_to_ground,
 						       _param_mpc_land_alt2.get(), _param_mpc_land_alt1.get(),
-						       _param_mpc_land_speed.get(), _constraints.speed_down);
+						       _param_mpc_land_speed.get(), _param_mpc_z_vel_max_dn.get());
 		const float limit_up = math::gradual(_dist_to_ground,
 						     _param_mpc_land_alt2.get(), _param_mpc_land_alt1.get(),
-						     _param_mpc_tko_speed.get(), _constraints.speed_up);
+						     _param_mpc_tko_speed.get(), _param_mpc_z_vel_max_up.get());
 		_velocity_setpoint(2) = math::constrain(_velocity_setpoint(2), -limit_up, limit_down);
+
+		_constraints.speed_down  = limit_down;
+		_constraints.speed_up = limit_up;
 	}
 }
 
