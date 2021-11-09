@@ -336,7 +336,7 @@
  * provides the true logic GPIO BOARD_ADC_xxxx macros.
  */
 #define BOARD_ADC_USB_CONNECTED (px4_arch_gpioread(GPIO_OTGFS_VBUS))
-#define BOARD_ADC_USB_VALID     (!px4_arch_gpioread(GPIO_nVDD_USB_VALID))
+#define BOARD_ADC_USB_VALID     (px4_arch_gpioread(GPIO_OTGFS_VBUS))
 
 /* Board never powers off the Servo rail */
 
