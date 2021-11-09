@@ -24,7 +24,7 @@ set OUTPUT_MODE tap_esc
 set VEHICLE_TYPE mc
 sh /etc/init.d/rc.mc_defaults
 
-set PARAM_DEFAULTS_VER 2
+set PARAM_DEFAULTS_VER 3
 set MIXER quad_x
 
 if param compare SYS_PARAM_VER ${PARAM_DEFAULTS_VER}
@@ -42,14 +42,14 @@ then
 	param set MC_PITCHRATE_I 0.2
 	param set MC_PITCHRATE_D 0.003
 	param set MC_PITCHRATE_FF 0.0
-	param set MC_PITCH_P 7.0
+	param set MC_PITCH_P 6.0
 	param set MC_PITCHRATE_MAX 220.0
 
 	param set MC_ROLLRATE_P 0.08
 	param set MC_ROLLRATE_I 0.2
 	param set MC_ROLLRATE_D 0.003
 	param set MC_ROLLRATE_FF 0.0
-	param set MC_ROLL_P 7.0
+	param set MC_ROLL_P 6.0
 	param set MC_ROLLRATE_MAX 220.0
 
 	param set MC_YAWRATE_MAX 200
@@ -73,7 +73,7 @@ then
 	param set MPC_XY_VEL_MAX 12.0
 	param set MPC_VEL_MANUAL 12.0
 	param set MPC_XY_TRAJ_P  0.5
-	param set MPC_Z_VEL_MAX_UP 5.0
+	param set MPC_Z_VEL_MAX_UP 4.0
 	param set MPC_Z_VEL_P_ACC 5.0
 
 
@@ -85,7 +85,7 @@ then
 	param set MPC_Z_MAN_EXPO 0.4
 
 	param set MPC_ACC_DOWN_MAX 3.0
-	param set MPC_ACC_UP_MAX 5.0
+	param set MPC_ACC_UP_MAX 4.0
 	param set MPC_ACC_HOR_MAX 6.0
 	param set MPC_ACC_HOR 5.0
 	param set MPC_JERK_AUTO 6.0
@@ -93,7 +93,7 @@ then
 	param set MPC_XY_VEL_P_ACC 3.0
 	# param set MPC_DEC_HOR_SLOW 1.5
 
-	param set MPC_Z_VEL_MAX_DN 3.5
+	param set MPC_Z_VEL_MAX_DN 3.0
 
 	# param set MPC_JERK_MIN 0.1
 
@@ -184,6 +184,7 @@ then
 	param set COM_FLTMODE4 2
 	param set COM_FLTMODE6 2
 	param set CBRK_SUPPLY_CHK 894281
+	param set CBRK_USB_CHK 197848
 
 	#
 	# RTL setting
@@ -215,6 +216,7 @@ then
 	param set MAV_PROTO_VER 2
 
 	param set LNDMC_ROT_MAX 50
+	param set LNDMC_TRIG_TIME 1.5
 
 	param save
 	reboot
