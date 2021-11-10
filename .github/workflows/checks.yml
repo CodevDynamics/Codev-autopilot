@@ -1,14 +1,38 @@
-name: Checks
+name: C/C++ CI
 
 on:
   push:
     branches:
-    - 'master'
+    - '*'
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
   pull_request:
     branches:
     - '*'
 
 jobs:
+  releaseBin:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.link_upload_url.outputs.upload_url }}
+
+    steps:
+    - name: Create Release
+      if: ${{ contains(github.ref, 'refs/tags') }}
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{github.ref}}
+        release_name: Release ${{github.ref}}
+        draft: false
+        prerelease: false
+    - name: OutputUR
+      id: link_upload_url
+      run: echo "::set-output name=upload_url::${{ steps.create_release.outputs.upload_url }}"
+
+
   build:
     runs-on: ubuntu-latest
     strategy:
@@ -16,17 +40,9 @@ jobs:
       matrix:
         check: [
           "check_format",
-          "tests",
           "tests_coverage",
-          "px4_fmu-v2_default stack_check",
-          "validate_module_configs",
-          "shellcheck_all",
-          "NO_NINJA_BUILD=1 px4_fmu-v5_default",
+          "NO_NINJA_BUILD=1 codev_dp1000-v2_default",
           "NO_NINJA_BUILD=1 px4_sitl_default",
-          "BUILD_MICRORTPS_AGENT=1 px4_sitl_rtps",
-          "airframe_metadata",
-          "module_documentation",
-          "parameters_metadata",
         ]
     container:
       image: px4io/px4-dev-nuttx-focal:2021-04-29
@@ -61,8 +77,12 @@ jobs:
       run: |
           export
           ulimit -a
-    - name: ${{matrix.check}}
-      run: make ${{matrix.check}}
+
+    - name: check_format
+      run: make check_format
+
+    - name: ${{matrix.config}}
+      run: make ${{matrix.config}}
     - name: upload coverage
       if: contains(matrix.check, 'coverage')
       uses: codecov/codecov-action@v1
@@ -70,3 +90,24 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         flags: unittests
         file: coverage/lcov.info
+
+    - name: Create Version
+      if: ${{ contains(github.ref, 'refs/tags') }}
+      shell: bash
+      run: |
+        cd build/${{matrix.config}}/ &&\
+        echo "##[set-output name=filename;]$(echo `ls`)" &&\
+        echo "##[set-output name=version;]$(echo `ls`)"
+      id: version
+
+    - name: Upload Release Asset
+      if: ${{ contains(github.ref, 'refs/tags') }}
+      id: upload_release_asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.releaseBin.outputs.upload_url }}
+        asset_path: build/${{matrix.config}}/${{matrix.config}}.px4
+        asset_name: ${{matrix.config}}.px4
+        asset_content_type: application/zip
