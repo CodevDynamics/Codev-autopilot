@@ -115,12 +115,16 @@ void WorkerThread::threadEntry()
 		_ret_value = do_mag_calibration(&_mavlink_log_pub);
 
 		if (_ret_value == PX4_OK) {
+#if defined(CONFIG_BOARDCTL_RESET)
+
 			if (px4_reboot_request(false, 1000 * 1000) == 0) {
 				set_tune(tune_control_s::TUNE_ID_SHUTDOWN);
 				mavlink_log_critical(&_mavlink_log_pub, "Magnetometer calibration is done, rebooting");
 
 				while (1) { px4_usleep(1); }
 			}
+
+#endif
 		}
 
 		break;
