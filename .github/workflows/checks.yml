@@ -39,10 +39,7 @@ jobs:
       fail-fast: false
       matrix:
         check: [
-          "check_format",
-          "tests_coverage",
-          "NO_NINJA_BUILD=1 codev_dp1000-v2_default",
-          "NO_NINJA_BUILD=1 px4_sitl_default",
+          "codev_dp1000-v2_default",
         ]
     container:
       image: px4io/px4-dev-nuttx-focal:2021-04-29
@@ -80,6 +77,9 @@ jobs:
 
     - name: check_format
       run: make check_format
+
+    - name: check_sitl
+      run: make px4_sitl_default
 
     - name: ${{matrix.config}}
       run: make ${{matrix.config}}
