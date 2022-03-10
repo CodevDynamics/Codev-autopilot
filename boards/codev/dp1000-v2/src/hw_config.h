@@ -65,7 +65,7 @@
 #define BOOTLOADER_DELAY               500
 #define INTERFACE_USB                  1
 #define INTERFACE_USB_CONFIG           "/dev/ttyACM0"
-#define BOARD_VBUS                     GPIO_OTGFS_VBUS
+#define BOARD_VBUS                     MK_GPIO_INPUT(GPIO_OTGFS_VBUS)
 
 #define USE_VBUS_PULL_DOWN	       1
 #define INTERFACE_USART                1
