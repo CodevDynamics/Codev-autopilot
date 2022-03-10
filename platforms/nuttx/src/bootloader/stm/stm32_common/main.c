@@ -267,11 +267,6 @@ board_init(void)
 	/* fix up the max firmware size, we have to read memory to get this */
 	board_info.fw_size = APP_SIZE_MAX;
 
-#if defined(BOARD_POWER_PIN_OUT)
-	/* Configure the Power pins */
-	px4_arch_configgpio(BOARD_POWER_PIN_OUT);
-	px4_arch_gpiowrite(BOARD_POWER_PIN_OUT, BOARD_POWER_ON);
-#endif
 
 #if INTERFACE_USB
 #if !defined(BOARD_USB_VBUS_SENSE_DISABLED)
@@ -280,10 +275,8 @@ board_init(void)
 #endif
 
 	/* enable configured GPIO to sample VBUS */
-#if defined(USE_VBUS_PULL_DOWN)
-	px4_arch_configgpio((GPIO_OTGFS_VBUS & GPIO_PUPD_MASK) | GPIO_PULLDOWN);
-#else
-	px4_arch_configgpio((GPIO_OTGFS_VBUS & GPIO_PUPD_MASK) | GPIO_FLOAT);
+#if USE_VBUS_PULL_DOWN
+	px4_arch_configgpio(BOARD_VBUS);
 #endif
 
 #if INTERFACE_USART
@@ -312,6 +305,12 @@ board_init(void)
 #if defined(BOARD_PIN_LED_RED)
 	/* Initialize LEDs */
 	px4_arch_configgpio(BOARD_PIN_LED_RED);
+#endif
+
+#if defined(BOARD_POWER_PIN_OUT)
+	/* Configure the Power pins */
+	px4_arch_configgpio(BOARD_POWER_PIN_OUT);
+	px4_arch_gpiowrite(BOARD_POWER_PIN_OUT, BOARD_POWER_ON);
 #endif
 }
 
@@ -687,6 +686,7 @@ bootloader_main(void)
 	/* configure the clock for bootloader activity */
 	clock_init();
 
+	px4_arch_gpiowrite(BOARD_POWER_PIN_OUT, BOARD_POWER_ON);
 	/*
 	 * Check the force-bootloader register; if we find the signature there, don't
 	 * try booting.
@@ -764,7 +764,7 @@ bootloader_main(void)
 		usb_connected = true;
 		/* don't try booting before we set up the bootloader */
 		try_boot = false;
-		showprogress('E');
+		showprogress('8');
 	}
 
 #else
