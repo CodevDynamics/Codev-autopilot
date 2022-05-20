@@ -340,7 +340,10 @@ private:
 	hrt_abstime	_last_esc_status_updated{0};
 
 	uint8_t		_battery_warning{battery_status_s::BATTERY_WARNING_NONE};
+	uint8_t		_battery_warning_prev{battery_status_s::BATTERY_WARNING_NONE};
 	float		_battery_current{0.0f};
+	float		_battery_remaing{0.0};
+	float 		_battery_critical_thr{0.0};
 
 	Hysteresis	_auto_disarm_landed{false};
 	Hysteresis	_auto_disarm_killed{false};
@@ -408,6 +411,7 @@ private:
 	uORB::Subscription					_vehicle_angular_velocity_sub{ORB_ID(vehicle_angular_velocity)};
 	uORB::Subscription					_vehicle_attitude_sub{ORB_ID(vehicle_attitude)};
 	uORB::Subscription					_vtol_vehicle_status_sub{ORB_ID(vtol_vehicle_status)};
+	uORB::Subscription					_home_position_sub{ORB_ID(home_position)};
 
 	uORB::SubscriptionInterval				_parameter_update_sub{ORB_ID(parameter_update), 1_s};
 

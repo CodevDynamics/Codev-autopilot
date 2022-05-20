@@ -1597,6 +1597,7 @@ Commander::run()
 
 	const param_t param_airmode = param_find("MC_AIRMODE");
 	const param_t param_rc_map_arm_switch = param_find("RC_MAP_ARM_SW");
+	const param_t param_battery_critical_thr = param_find("BAT_CRIT_THR");
 
 	/* initialize */
 	led_init();
@@ -1758,6 +1759,11 @@ Commander::run()
 			}
 
 			_offboard_available.set_hysteresis_time_from(true, _param_com_of_loss_t.get() * 1e6f);
+
+			// const param_t battery_low_remain = param_find("BAT_CRIT_THR");
+			if (param_battery_critical_thr != PARAM_INVALID) {
+				param_get(param_battery_critical_thr, &_battery_critical_thr);
+			}
 
 			param_init_forced = false;
 		}
@@ -2098,6 +2104,9 @@ Commander::run()
 					}
 				}
 
+				home_position_s home_position = {};
+				_home_position_sub.copy(&home_position);
+
 				/* Only evaluate mission state if home is set */
 				if (_status_flags.condition_home_position_valid &&
 				    (prev_mission_instance_count != mission_result.instance_count)) {
@@ -2110,7 +2119,7 @@ Commander::run()
 						/* the mission has a warning */
 						tune_mission_warn(true);
 
-					} else {
+					} else if (hrt_elapsed_time(&home_position.timestamp) > 2_s) {
 						/* the mission is valid */
 						tune_mission_ok(true);
 					}
@@ -2689,19 +2698,17 @@ Commander::run()
 			set_tune(tune_control_s::TUNE_ID_ARMING_WARNING);
 			_arm_tune_played = true;
 
-		} else if (!_status_flags.usb_connected &&
-			   (_status.hil_state != vehicle_status_s::HIL_STATE_ON) &&
-			   (_battery_warning == battery_status_s::BATTERY_WARNING_CRITICAL)) {
+		} else if (((_battery_warning != _battery_warning_prev) || (_was_armed != _armed.armed)) &&
+			   (_battery_warning >= battery_status_s::BATTERY_WARNING_CRITICAL)) {
 			/* play tune on battery critical */
 			set_tune(tune_control_s::TUNE_ID_BATTERY_WARNING_FAST);
 
-		} else if ((_status.hil_state != vehicle_status_s::HIL_STATE_ON) &&
-			   (_battery_warning == battery_status_s::BATTERY_WARNING_LOW)) {
+		} else if (_battery_warning == battery_status_s::BATTERY_WARNING_LOW) {
 			/* play tune on battery warning */
-			set_tune(tune_control_s::TUNE_ID_BATTERY_WARNING_SLOW);
+			// set_tune(tune_control_s::TUNE_ID_BATTERY_WARNING_SLOW);
 
-		} else if (_status.failsafe) {
-			tune_failsafe(true);
+			// } else if (_status.failsafe) {
+			// 	tune_failsafe(true);
 
 		} else {
 			set_tune(tune_control_s::TUNE_ID_STOP);
@@ -2765,6 +2772,8 @@ Commander::run()
 		_status_changed = false;
 
 		_was_armed = _armed.armed;
+
+		_battery_warning_prev = _battery_warning;
 
 		arm_auth_update(now, params_updated || param_init_forced);
 
@@ -2851,14 +2860,16 @@ Commander::control_status_leds(bool changed, const uint8_t battery_warning)
 
 		if (set_normal_color) {
 			/* set color */
-			if (_status.failsafe) {
+			if (_status.failsafe ||
+			    (_battery_remaing < _battery_critical_thr) ||
+			    (battery_warning > battery_status_s::BATTERY_WARNING_LOW)) {
 				led_color = led_control_s::COLOR_RED;
 
-			} else if (battery_warning >= battery_status_s::BATTERY_WARNING_LOW) {
-				led_color = led_control_s::COLOR_RED;
+			} else if (_status.rc_signal_lost) {
+				led_color = led_control_s::COLOR_WHITE;
 
-			} else if (_status.nav_state == vehicle_status_s::NAVIGATION_STATE_AUTO_RTL ||
-				   _status.nav_state == vehicle_status_s::NAVIGATION_STATE_AUTO_LAND) {
+			}  else if (_status.nav_state == vehicle_status_s::NAVIGATION_STATE_AUTO_RTL ||
+				    _status.nav_state == vehicle_status_s::NAVIGATION_STATE_AUTO_LAND) {
 				led_color = led_control_s::COLOR_YELLOW;
 
 			} else if (_status.nav_state == vehicle_status_s::NAVIGATION_STATE_AUTO_MISSION) {
@@ -3642,6 +3653,17 @@ void Commander::data_link_check()
 			_avoidance_system_lost = true;
 			_status_flags.avoidance_system_valid = false;
 		}
+
+		const bool distance_sensor_valid = hrt_elapsed_time(&_valid_distance_sensor_time_us) < 500_ms;
+
+		if (distance_sensor_valid) {
+			_status_flags.avoidance_system_valid = true;
+			_avoidance_system_lost = false;
+
+		} else {
+			_status_flags.avoidance_system_valid = false;
+			_avoidance_system_lost = true;
+		}
 	}
 
 	// high latency data link loss failsafe
@@ -3739,26 +3761,27 @@ void Commander::battery_status_check()
 	}
 
 	battery_level /= num_connected_batteries;
+	_battery_remaing = battery_level;
 
 	_rtl_flight_time_sub.update();
-	float battery_usage_to_home = 0;
+	// float battery_usage_to_home = 0;
 
-	if (hrt_absolute_time() - _rtl_flight_time_sub.get().timestamp < 2_s) {
-		battery_usage_to_home = _rtl_flight_time_sub.get().rtl_limit_fraction;
-	}
+	// if (hrt_absolute_time() - _rtl_flight_time_sub.get().timestamp < 2_s) {
+	// 	battery_usage_to_home = _rtl_flight_time_sub.get().rtl_limit_fraction;
+	// }
 
 	uint8_t battery_range_warning = battery_status_s::BATTERY_WARNING_NONE;
 
-	if (PX4_ISFINITE(battery_usage_to_home)) {
-		float battery_at_home = battery_level - battery_usage_to_home;
+	// if (PX4_ISFINITE(battery_usage_to_home)) {
+	// 	float battery_at_home = battery_level - battery_usage_to_home;
 
-		if (battery_at_home < _param_bat_crit_thr.get()) {
-			battery_range_warning =  battery_status_s::BATTERY_WARNING_CRITICAL;
+	// 	if (battery_at_home < _param_bat_crit_thr.get()) {
+	// 		battery_range_warning =  battery_status_s::BATTERY_WARNING_CRITICAL;
 
-		} else if (battery_at_home < _param_bat_low_thr.get()) {
-			battery_range_warning = battery_status_s::BATTERY_WARNING_LOW;
-		}
-	}
+	// 	} else if (battery_at_home < _param_bat_low_thr.get()) {
+	// 		battery_range_warning = battery_status_s::BATTERY_WARNING_LOW;
+	// 	}
+	// }
 
 	if (battery_range_warning > worst_warning) {
 		worst_warning = battery_range_warning;
@@ -3790,7 +3813,7 @@ void Commander::battery_status_check()
 		// There is at least one connected battery (in any slot)
 		&& (num_connected_batteries > 0)
 		// No currently-connected batteries have any warning
-		&& (_battery_warning <= battery_status_s::BATTERY_WARNING_LOW);
+		&& (_battery_warning < battery_status_s::BATTERY_WARNING_LOW);
 
 	// execute battery failsafe if the state has gotten worse while we are armed
 	if (battery_warning_level_increased_while_armed) {
