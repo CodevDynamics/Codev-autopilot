@@ -780,9 +780,15 @@ void TAP_ESC::cycle()
 		tune_control_s 	tune;
 		orb_copy(ORB_ID(tune_control), _tune_control_sub, &tune);
 		Tunes::ControlResult tune_ret = (Tunes::ControlResult) - 1;
-		bool step_out_play = (tune.tune_id == 0) ||
-				     ((_last_play_tone != 0) && (tune.tune_id == _last_play_tune_id)) ||
-				     ((_last_play_tone != 0) && ((now - _last_play_tone) < 1500 * 1000) && (tune.tune_id != _last_play_tune_id));
+
+		bool step_out_play = (tune.tune_id == 0);
+
+		if (tune.tune_id == tune_control_s::TUNE_ID_STARTUP) {
+			step_out_play = false;
+
+		} else if (tune.tune_id == tune_control_s::TUNE_ID_STOP) {
+			step_out_play = true;
+		}
 
 		if (!step_out_play) {
 			tune_ret = _tunes.set_control(tune);
