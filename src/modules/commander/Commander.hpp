@@ -369,6 +369,7 @@ private:
 	hrt_abstime	_last_disarmed_timestamp{0};
 	hrt_abstime	_timestamp_engine_healthy{0}; ///< absolute time when engine was healty
 	hrt_abstime	_overload_start{0};		///< time when CPU overload started
+	hrt_abstime	_home_valid_first_timestamp{0};
 
 	uint32_t	_counter{0};
 	uint8_t		_heading_reset_counter{0};
@@ -380,6 +381,7 @@ private:
 	bool		_have_taken_off_since_arming{false};
 	bool		_should_set_home_on_takeoff{true};
 	bool		_system_power_usb_connected{false};
+	bool 		_was_condition_home_position_valid{false};
 
 	cpuload_s		_cpuload{};
 	geofence_result_s	_geofence_result{};

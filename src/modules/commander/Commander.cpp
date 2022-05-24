@@ -2109,7 +2109,8 @@ Commander::run()
 
 				/* Only evaluate mission state if home is set */
 				if (_status_flags.condition_home_position_valid &&
-				    (prev_mission_instance_count != mission_result.instance_count)) {
+				    (prev_mission_instance_count != mission_result.instance_count) &&
+				    (hrt_elapsed_time(&_home_valid_first_timestamp) > 5_s)) {
 
 					if (!_status_flags.condition_auto_mission_available) {
 						/* the mission is invalid */
@@ -2119,7 +2120,7 @@ Commander::run()
 						/* the mission has a warning */
 						tune_mission_warn(true);
 
-					} else if (hrt_elapsed_time(&home_position.timestamp) > 2_s) {
+					} else {
 						/* the mission is valid */
 						tune_mission_ok(true);
 					}
@@ -2769,9 +2770,14 @@ Commander::run()
 			}
 		}
 
+		if (!_was_condition_home_position_valid && _status_flags.condition_home_position_valid) {
+			_home_valid_first_timestamp = now;
+		}
+
 		_status_changed = false;
 
 		_was_armed = _armed.armed;
+		_was_condition_home_position_valid = _status_flags.condition_home_position_valid;
 
 		_battery_warning_prev = _battery_warning;
 
