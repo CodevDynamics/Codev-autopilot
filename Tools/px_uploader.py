@@ -137,7 +137,7 @@ class firmware(object):
         self.image = bytearray(zlib.decompress(base64.b64decode(self.desc['image'])))
 
         # pad image to 4-byte length
-        while ((len(self.image) % 4) != 0):
+        while ((len(self.image) % (4 * 8)) != 0):
             self.image.extend(b'\xff')
 
     def property(self, propname):

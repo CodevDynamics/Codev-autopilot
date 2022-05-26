@@ -104,7 +104,7 @@ int fc_write(uintptr_t address, uint32_t word)
 
 		// Are we back writing the first word?
 
-		if (fc == &flash_cache[0] &&  index == 0 && fc->index == 7) {
+		if (fc == &flash_cache[0] &&  index == 0 && fc->index > 0) {
 
 			if (fc_is_dirty(fc1)) {
 
