@@ -161,17 +161,17 @@ bl_update_main(int argc, char *argv[])
 
 	close(fd);
 
-	uint32_t *hdr = (uint32_t *)buf;
+	// uint32_t *hdr = (uint32_t *)buf;
 
-	if ((hdr[0] < STM_RAM_BASE) ||			/* stack not below RAM */
-	    (hdr[0] > (STM_RAM_BASE + (128 * 1024))) ||	/* stack not above RAM */
-	    (hdr[1] < PX4_FLASH_BASE) ||			/* entrypoint not below flash */
-	    ((hdr[1] - PX4_FLASH_BASE) > BL_FILE_SIZE_LIMIT))  		/* entrypoint not outside bootloader */
-	{
-		free(buf);
-		PX4_ERR("not a bootloader image");
-		return 1;
-	}
+	// if ((hdr[0] < STM_RAM_BASE) ||			/* stack not below RAM */
+	//     (hdr[0] > (STM_RAM_BASE + (128 * 1024))) ||	/* stack not above RAM */
+	//     (hdr[1] < PX4_FLASH_BASE) ||			/* entrypoint not below flash */
+	//     ((hdr[1] - PX4_FLASH_BASE) > BL_FILE_SIZE_LIMIT))  		/* entrypoint not outside bootloader */
+	// {
+	// 	free(buf);
+	// 	PX4_ERR("not a bootloader image");
+	// 	return 1;
+	// }
 
 	PX4_INFO("image validated, erasing bootloader...");
 	px4_usleep(10000);
