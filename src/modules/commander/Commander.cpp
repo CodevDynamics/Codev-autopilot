@@ -2718,10 +2718,10 @@ Commander::run()
 		/* reset arm_tune_played when disarmed */
 		if (!_armed.armed || (_safety.safety_switch_available && !_safety.safety_off)) {
 
-			// Notify the user that it is safe to approach the vehicle
-			if (_arm_tune_played) {
-				tune_neutral(true);
-			}
+			// // Notify the user that it is safe to approach the vehicle
+			// if (_arm_tune_played) {
+			// 	tune_neutral(true);
+			// }
 
 			_arm_tune_played = false;
 		}
