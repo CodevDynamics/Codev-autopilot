@@ -139,7 +139,8 @@ else
 	if param greater SYS_AUTOCONFIG 0
 	then
 		# Wipe out params except RC*, flight modes, total flight time, calibration parameters, next flight UUID
-		param reset_all SYS_AUTO* RC* COM_FLTMODE* LND_FLIGHT* TC_* CAL_ACC* CAL_GYRO* COM_FLIGHT*
+		param reset_all
+		param set SYS_AUTOCONFIG 0
 		set AUTOCNF yes
 	fi
 
